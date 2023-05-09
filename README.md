@@ -1,6 +1,6 @@
-# 运行yolov5导出的onnx,engine,openvino等
+# 运行yolov8导出的onnx,engine,openvino等
 
-下载pt,onnx地址 [Releases · ultralytics/yolov5 (github.com)](https://github.com/ultralytics/yolov5/releases)
+[ultralytics/ultralytics: NEW - YOLOv8 🚀 in PyTorch > ONNX > CoreML > TFLite (github.com)](https://github.com/ultralytics/ultralytics)
 
 # 参考
 
