@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package object_detect;
+
+// 服务定义，这个就是我们在程序中要定义的类了，类名就是YoloDetect
+service YoloDetect {
+    // 函数定义 data_request参数 data_reply返回数据,这个就是在服务器要实现的方法了，是个函数
+    rpc v8_detect (Request) returns (Response) {}
+}
+
+//数据类型，其实我只要一个就可以了
+message Request {
+    string image = 1;
+}
+
+message Response {
+    // 后面的 1 2 3代表顺序,顺序必须从1开始,并且不可重复
+    string image = 1;
+    string detect = 2;
+}
+
+// 在上级目录使用命令: python -m grpc_tools.protoc -I./proto --python_out=. --grpc_python_out=. proto/object_detect.proto
+

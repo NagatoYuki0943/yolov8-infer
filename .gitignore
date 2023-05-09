@@ -1,0 +1,15 @@
+__pycache__
+.vscode
+.idea
+
+# model weights
+weights
+!weights/README.md
+!weights/yolov8.yaml
+
+# server files
+client
+server
+
+# log
+logs

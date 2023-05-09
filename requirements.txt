@@ -1,0 +1,13 @@
+numpy
+opencv-python
+
+# onnxruntime   # CPU
+onnxruntime-gpu # GPU 不要和cpu版本同时安装
+
+# openvino-dev # https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/download.html
+
+# tensorrt # 安装方式在trt的README.md中
+# pycuda
+
+colorsys
+PyYAML
