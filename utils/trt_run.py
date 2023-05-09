@@ -1,10 +1,6 @@
 # refer: https://github.com/NagatoYuki0943/14_tensorrt-python-samples/blob/main/python/efficientdet/infer.py
 
-import sys
-sys.path.append("../")
-
 import numpy as np
-import cv2
 import tensorrt as trt
 import pycuda.driver as cuda
 import json
@@ -16,7 +12,7 @@ try:
 except ModuleNotFoundError:
     import pycuda.autoinit
 
-from utils import Inference, get_image
+from .inference import Inference
 
 
 class TensorRTInfer(Inference):
@@ -143,30 +139,3 @@ class TensorRTInfer(Inference):
         result = self.outputs[0]['host_allocation']
 
         return result
-
-
-if __name__ == "__main__":
-    config = {
-        "model_path":           r"../weights/yolov8s.engine",
-        "yaml_path":            r"../weights/yolov8.yaml",
-        "confidence_threshold": 0.25,   # 只有得分大于置信度的预测框会被保留下来,越大越严格
-        "score_threshold":      0.2,    # opencv nms分类得分阈值,越大越严格
-        "nms_threshold":        0.45,   # 非极大抑制所用到的nms_iou大小,越小越严格
-    }
-
-    # 实例化推理器
-    inference = TensorRTInfer(**config)
-
-    # 单张图片推理
-    IMAGE_PATH   = r"../images/bus.jpg"
-    SAVE_PATH    = r"./trt_det.jpg"
-    image_rgb = get_image(IMAGE_PATH)
-    result, image_bgr_detect = inference.single(image_rgb, only_get_boxes=False)
-    print(result)
-    cv2.imwrite(SAVE_PATH, image_bgr_detect)
-
-    # 多张图片推理
-    IMAGE_DIR = r"../../datasets/coco128/images/train2017"
-    SAVE_DIR  = r"../../datasets/coco128/images/train2017_res"
-    # inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True)
-    # avg transform time: 3.953125 ms, avg infer time: 8.1796875 ms, avg nms time: 0.765625 ms, avg figure time: 13.390625 ms

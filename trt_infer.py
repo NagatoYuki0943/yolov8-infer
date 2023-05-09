@@ -1,5 +1,4 @@
-from tensorrt_infer import TensorRTInfer
-from utils import get_image
+from utils import get_image, TensorRTInfer
 import cv2
 
 
@@ -21,10 +20,11 @@ image_rgb = get_image(IMAGE_PATH)
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_boxes=False)
 print(result)
-cv2.imshow("res", image_bgr_detect)
-cv2.waitKey(0)
+SAVE_PATH  = r"./trt_det.jpg"
+cv2.imwrite(SAVE_PATH, image_bgr_detect)
 
 # 多张图片推理
 IMAGE_DIR = r"../datasets/coco128/images/train2017"
 SAVE_DIR  = r"../datasets/coco128/images/train2017_res"
 # inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
+# avg transform time: 4.0078125 ms, avg infer time: 8.140625 ms, avg nms time: 0.8671875 ms, avg figure time: 13.7421875 ms

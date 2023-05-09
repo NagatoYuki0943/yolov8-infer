@@ -1,5 +1,4 @@
-from onnxruntime_infer import OrtInference
-from utils import get_image
+from utils import get_image, OrtInference
 import cv2
 
 
@@ -22,10 +21,11 @@ image_rgb = get_image(IMAGE_PATH)
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_boxes=False)
 print(result)
-cv2.imshow("res", image_bgr_detect)
-cv2.waitKey(0)
+SAVE_PATH  = r"./ort_det.jpg"
+cv2.imwrite(SAVE_PATH, image_bgr_detect)
 
 # 多张图片推理
 IMAGE_DIR = r"../datasets/coco128/images/train2017"
 SAVE_DIR  = r"../datasets/coco128/images/train2017_res"
 # inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
+# avg transform time: 3.9453125 ms, avg infer time: 10.7734375 ms, avg nms time: 0.6640625 ms, avg figure time: 13.2578125 ms

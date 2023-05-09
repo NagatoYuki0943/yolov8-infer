@@ -11,8 +11,7 @@ import object_detect_pb2_grpc
 
 import sys
 sys.path.append("../")
-from onnxruntime_infer import OrtInference
-from utils import Inference, json2xml
+from utils import Inference, OrtInference, json2xml
 
 
 SERVER_HOST      = r"[::]:50051"
