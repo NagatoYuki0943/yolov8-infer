@@ -199,20 +199,21 @@ def ignore_overlap_boxes(detections: np.ndarray) -> np.ndarray:
         area = np.array(h * w)
         index = area.argsort()              # 得到面积排序index
         index = index[::-1]                 # 转换为降序
-        dets_sig_cls = dets_sig_cls[index]  # dets_sig_cls转换为相同的顺序(这样做似乎可以解决index不匹配问题)
 
-        # max_i代表大的框,min_i代表小的框
+        # max_i代表大的框index,min_i代表小的框index,所以不是顺序的,会出现类似 [3,0,1,4,2]的顺序,保存时也保存对应的位置上,对应原数据
         keeps = []
         for i, max_i in enumerate(index[:-1]):
             # 默认都不包含
             keep = [False] * len(dets_sig_cls)
             for min_i in index[i+1:]:
                 isin = ignore_box2_or_not(dets_sig_cls[max_i, 2:], dets_sig_cls[min_i, 2:])
-                keep[min_i] = isin # 包含
+                keep[min_i] = isin
             keeps.append(keep)
         # 取反,原本False为不包含,True为包含,取反后False为不保留,True为保留
         keeps = ~np.array(keeps)
-        # print(keeps) # 每一行代表被判断的框相对于判断框是否要保留
+        # print(keeps)
+        # 每一行代表被判断的框相对于判断框是否要保留
+        # 每一列代表对应index的框是否保留
         # [[True, True, True, True, False, True,  True,  True, True,  True,  True,  False],
         #  [True, True, True, True, True,  True,  True,  True, True,  True,  True,  True],
         #  [True, True, True, True, True,  True,  False, True, True,  True,  False, True],
