@@ -10,8 +10,6 @@ import numpy as np
 import colorsys
 from pathlib import Path
 import logging
-import sys
-sys.path.append("../")
 
 
 def load_yaml(yaml_path: str) -> dict:
