@@ -197,8 +197,9 @@ def ignore_overlap_boxes(detections: np.ndarray) -> np.ndarray:
         h = dets_sig_cls[:, 5] - dets_sig_cls[:, 3]
         w = dets_sig_cls[:, 4] - dets_sig_cls[:, 2]
         area = np.array(h * w)
-        index = area.argsort()  # 得到面积排序index
-        index = index[::-1]     # 转换为降序
+        index = area.argsort()              # 得到面积排序index
+        index = index[::-1]                 # 转换为降序
+        dets_sig_cls = dets_sig_cls[index]  # dets_sig_cls转换为相同的顺序(这样做似乎可以解决index不匹配问题)
 
         # max_i代表大的框,min_i代表小的框
         keeps = []
