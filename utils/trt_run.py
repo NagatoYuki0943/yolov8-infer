@@ -52,7 +52,7 @@ class TensorRTInfer(Inference):
             # dtype = np.dtype(trt.nptype(self.engine.get_binding_dtype(i)))
             # shape = self.context.get_binding_shape(i)
 
-            # trt 8.5
+            # trt version >= 8.5
             name = self.engine.get_tensor_name(i)
             if self.engine.get_tensor_mode(name) == trt.TensorIOMode.INPUT:
                 is_input = True
@@ -122,17 +122,17 @@ class TensorRTInfer(Inference):
             specs.append((o['shape'], o['dtype']))
         return specs
 
-    def infer(self, batch: np.ndarray) -> np.ndarray:
+    def infer(self, images: np.ndarray) -> np.ndarray:
         """
         Execute inference on a batch of images.
-        :param batch: A numpy array holding the image batch.
+        :param images: A numpy array holding the image batch.
         :return numpy arrays.
         """
-        batch = np.ascontiguousarray(batch) # 将图片内存变得连续
+        images = np.ascontiguousarray(images) # 将图片内存变得连续
         # Copy I/O and Execute
-        cuda.memcpy_htod(self.inputs[0]['allocation'], batch) # 将内存中的图片移动到显存上
-        self.context.execute_v2(self.allocations)             # infer
-        for o in range(len(self.outputs)):                    # 将显存中的结果移动到内存上
+        cuda.memcpy_htod(self.inputs[0]['allocation'], images) # 将内存中的图片移动到显存上
+        self.context.execute_v2(self.allocations)              # infer
+        for o in range(len(self.outputs)):                     # 将显存中的结果移动到内存上
             cuda.memcpy_dtoh(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'])
 
         # result = [o['host_allocation'] for o in self.outputs] # 取出结果
