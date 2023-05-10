@@ -11,7 +11,6 @@ class OrtInference(Inference):
         """
         Args:
             model_path (str): 模型路径
-            size (list[int]): 推理图片大小 [H, W]
             mode (str, optional): cpu cuda tensorrt. Defaults to cpu.
         """
         super().__init__(**kwargs)

@@ -30,7 +30,6 @@ class OVInference(Inference):
         """
         Args:
             model_path (str): 模型路径
-            size (list[int]): 推理图片大小 [H, W]
             mode (str, optional): CPU or GPU or GPU.0  Defaults to CPU. 具体可以使用设备可以运行 samples/python/hello_query_device/hello_query_device.py 文件查看
 
         """
