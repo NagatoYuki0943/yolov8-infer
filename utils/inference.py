@@ -307,7 +307,7 @@ class Inference(ABC):
             ignore_overlap_box (bool, optional): 是否忽略重叠的小框,不同于nms. Defaults to False.
         """
         if not os.path.exists(save_dir):
-            print(f"The save path {save_dir} does not exist, it has been created")
+            self.logger.info(f"The save path {save_dir} does not exist, it has been created")
             os.makedirs(save_dir)
 
         # 1.获取文件夹中所有图片
