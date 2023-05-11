@@ -221,6 +221,30 @@ SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
 # inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
 ```
 
+## 环境变量example
+
+### windows
+
+```sh
+# tensorrt
+D:\code\TensorRT\bin
+D:\code\TensorRT\lib
+```
+
+### linux
+
+> bash&zsh
+
+```sh
+# cuda
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+# tensorrt
+export PATH=/home/TensorRT/bin:$PATH
+export LD_LIBRARY_PATH=/home/TensorRT/lib:$LD_LIBRARY_PATH
+```
+
 # OpenCV推理例子
 
 ```python
