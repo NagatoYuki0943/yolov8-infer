@@ -4,6 +4,7 @@ import cv2
 
 config = {
     "model_path":           r"./weights/yolov8s.engine",
+    "trtexec":              False,  # 是否使用trtexec手动导出的engine模型,yolov8的导出会在开始添加metadata,trtexec不会添加
     "yaml_path":            r"./weights/yolov8.yaml",
     "confidence_threshold": 0.25,   # 只有得分大于置信度的预测框会被保留下来,越大越严格
     "score_threshold":      0.2,    # opencv nms分类得分阈值,越大越严格
