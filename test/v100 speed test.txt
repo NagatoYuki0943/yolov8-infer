@@ -1,0 +1,8 @@
+yolov8s:
+	ort:
+		fp32	avg transform time: 5.09375 ms, avg infer time: 8.640625 ms, avg nms time: 2.0 ms, avg figure time: 8.7109375 ms
+		fp16	avg transform time: 5.015625 ms, avg infer time: 19.703125 ms, avg nms time: 1.359375 ms, avg figure time: 8.4765625 ms
+
+	trt:
+		fp32	avg transform time: 4.9609375 ms, avg infer time: 6.3046875 ms, avg nms time: 2.0 ms, avg figure time: 8.1640625 ms
+		fp16	avg transform time: 4.8984375 ms, avg infer time: 4.5390625 ms, avg nms time: 2.0078125 ms, avg figure time: 7.8671875 ms

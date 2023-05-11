@@ -109,6 +109,9 @@ class TensorRTInfer(Inference):
             self.fp16 = True
             self.logger.info("use fp16 inference")
 
+        # async stream
+        self.stream = cuda.Stream()
+
         # warm up model
         self.warm_up()
 
@@ -130,18 +133,36 @@ class TensorRTInfer(Inference):
         return specs
 
     def infer(self, images: np.ndarray) -> np.ndarray:
-        """
+        """ async infer
         Execute inference on a batch of images.
         :param images: A numpy array holding the image batch.
         :return numpy arrays.
         """
-        # Copy I/O and Execute                         # 将图片内存变得连续
-        cuda.memcpy_htod(self.inputs[0]['allocation'], np.ascontiguousarray(images)) # 将内存中的图片移动到显存上
-        self.context.execute_v2(self.allocations)              # infer
-        for o in range(len(self.outputs)):                     # 将显存中的结果移动到内存上
-            cuda.memcpy_dtoh(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'])
+        # 将内存中的图片移动到显存上                             将图片内存变得连续
+        cuda.memcpy_htod_async(self.inputs[0]['allocation'], np.ascontiguousarray(images), self.stream)
+        self.context.execute_async_v2(self.allocations, self.stream.handle)     # infer
+        for o in range(len(self.outputs)):                                      # 将显存中的结果移动到内存上
+            cuda.memcpy_dtoh_async(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'], self.stream)
 
         # result = [o['host_allocation'] for o in self.outputs] # 取出结果
         result = self.outputs[0]['host_allocation']
 
+        # syncronize threads
+        self.stream.synchronize()
         return result
+
+    # def infer(self, images: np.ndarray) -> np.ndarray:
+    #     """ sync infer
+    #     Execute inference on a batch of images.
+    #     :param images: A numpy array holding the image batch.
+    #     :return numpy arrays.
+    #     """
+    #     # 将内存中的图片移动到显存上                       将图片内存变得连续
+    #     cuda.memcpy_htod(self.inputs[0]['allocation'], np.ascontiguousarray(images))
+    #     self.context.execute_v2(self.allocations)              # infer
+    #     for o in range(len(self.outputs)):                     # 将显存中的结果移动到内存上
+    #         cuda.memcpy_dtoh(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'])
+
+    #     # result = [o['host_allocation'] for o in self.outputs] # 取出结果
+    #     result = self.outputs[0]['host_allocation']
+    #     return result

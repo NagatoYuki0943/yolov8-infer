@@ -1,8 +1,8 @@
-# 1080ti不支持fp146推理,因此会变慢
+# 1080ti不支持fp16推理,因此会变慢
 
 # 传递fp16变量之后再转换为fp32格式
 yolov5s:
-	ort:
+	ort:																	nms time 显著增加
 		fp32:	avg transform time: 3.5390625 ms, avg infer time: 21.5 ms, avg nms time: 0.015625 ms, avg figure time: 11.890625 ms
 		fp16:	avg transform time: 3.546875 ms, avg infer time: 31.765625 ms, avg nms time: 3.546875 ms, avg figure time: 12.0078125 ms
 
@@ -22,7 +22,7 @@ yolov8s:
 
 # 直接在传递变量时就转换为fp32格式
 yolov5s:
-	ort:
+	ort:																		nms time 没有显著变化
 		fp32:	avg transform time: 3.9765625 ms, avg infer time: 26.8515625 ms, avg nms time: 0.0 ms, avg figure time: 12.1796875 ms
 		fp16:	avg transform time: 3.7421875 ms, avg infer time: 33.53125 ms, avg nms time: 0.0 ms, avg figure time: 12.0703125 ms
 
