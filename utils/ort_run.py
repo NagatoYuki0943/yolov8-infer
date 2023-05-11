@@ -91,6 +91,7 @@ class OrtInference(Inference):
         # 半精度推理
         if model.get_inputs()[0].type[7:-1] == "float16":
             self.fp16 = True
+            self.logger.info("use fp16 inference")
 
         #--------------------------------#
         #   查看model中的内容

@@ -1,0 +1,8 @@
+yolov8s:
+	ort: fp16 infer相比fp32没提速,前后处理速度变慢
+		fp32:	avg transform time: 4.984375 ms, avg infer time: 8.0 ms, avg nms time: 2.0 ms, avg figure time: 8.2890625 ms
+		fp16:	avg transform time: 10.3046875 ms, avg infer time: 8.0859375 ms, avg nms time: 7.4453125 ms, avg figure time: 8.109375 ms
+
+	trt: fp16 infer相比fp32有提速,前后处理速度不变
+		fp32:	avg transform time: 5.640625 ms, avg infer time: 6.0 ms, avg nms time: 2.0 ms, avg figure time: 8.1171875 ms
+		fp16: 	avg transform time: 4.9296875 ms, avg infer time: 4.0078125 ms, avg nms time: 2.0 ms, avg figure time: 8.0 ms

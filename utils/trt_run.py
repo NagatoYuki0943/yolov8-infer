@@ -107,6 +107,7 @@ class TensorRTInfer(Inference):
         # 半精度推理
         if self.inputs[0]["dtype"] == np.float16:
             self.fp16 = True
+            self.logger.info("use fp16 inference")
 
         # warm up model
         self.warm_up()
