@@ -1,4 +1,7 @@
-import onnxruntime as ort
+try:
+    import onnxruntime as ort
+except:
+    ort = None
 import numpy as np
 from .inference import Inference
 from .functions import check_onnx

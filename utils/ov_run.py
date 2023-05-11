@@ -1,7 +1,10 @@
-import openvino.runtime as ov
-from openvino.preprocess import PrePostProcessor
-from openvino.preprocess import ColorFormat
-from openvino.runtime import Layout, Type
+try:
+    import openvino.runtime as ov
+    from openvino.preprocess import PrePostProcessor
+    from openvino.preprocess import ColorFormat
+    from openvino.runtime import Layout, Type
+except:
+    ov = PrePostProcessor = ColorFormat = Layout = Type = None
 import numpy as np
 from .inference import Inference
 
@@ -45,7 +48,7 @@ class OVInference(Inference):
         # 3.预热模型
         self.warm_up()
 
-    def get_model(self, model_path: str, mode: str='CPU') -> ov.CompiledModel:
+    def get_model(self, model_path: str, mode: str='CPU'):
         """获取模型
         Args:
             model_path (str):       模路径, xml or onnx

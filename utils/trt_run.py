@@ -1,17 +1,21 @@
 # refer: https://github.com/NagatoYuki0943/14_tensorrt-python-samples/blob/main/python/efficientdet/infer.py
 
 import numpy as np
-import tensorrt as trt
-import pycuda.driver as cuda
-import json
-# Use autoprimaryctx if available (pycuda >= 2021.1) to
-# prevent issues with other modules that rely on the primary
-# device context.
 try:
-    import pycuda.autoprimaryctx
-except ModuleNotFoundError:
-    import pycuda.autoinit
+    import tensorrt as trt
+    import pycuda.driver as cuda
 
+    # Use autoprimaryctx if available (pycuda >= 2021.1) to
+    # prevent issues with other modules that rely on the primary
+    # device context.
+    try:
+        import pycuda.autoprimaryctx
+    except ModuleNotFoundError:
+        import pycuda.autoinit
+except:
+    trt = cuda = None
+
+import json
 from .inference import Inference
 
 

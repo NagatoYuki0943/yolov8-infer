@@ -84,7 +84,8 @@ class Inference(ABC):
                     ...
                 ]
         """
-        detections = detections.T
+        # float16在nms时速度慢
+        detections = detections.astype(np.float32).T if detections.dtype != np.float32 else detections.T
         # 位置坐标
         loc            = detections[:, :4]
         # 分类
