@@ -24,15 +24,14 @@ class OpenCVInference(Inference):
         # 3.预热模型
         self.warm_up()
 
-    def infer(self, image: np.ndarray) -> np.ndarray:
+    def infer(self, images: np.ndarray) -> np.ndarray:
         """推理单张图片
         Args:
-            image (np.ndarray): 图片 [B, C, H, W]
+            images (np.ndarray): 图片 [B, C, H, W]
         Returns:
             np.ndarray: boxes [B, 25200, 85]
         """
         # 推理
-        self.model.setInput(image)
+        self.model.setInput(images)
         boxes = self.model.forward()
-
         return boxes
