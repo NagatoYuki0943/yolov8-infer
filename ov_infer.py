@@ -13,11 +13,11 @@ config = {
 }
 
 # 实例化推理器
-inference = OVInference(**config)
+inference  = OVInference(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
-image_rgb = get_image(IMAGE_PATH)
+image_rgb  = get_image(IMAGE_PATH)
 
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_boxes=False)
@@ -26,7 +26,7 @@ SAVE_PATH  = r"./ov_det.jpg"
 cv2.imwrite(SAVE_PATH, image_bgr_detect)
 
 # 多张图片推理
-IMAGE_DIR = r"../datasets/coco128/images/train2017"
-SAVE_DIR  = r"../datasets/coco128/images/train2017_res"
+IMAGE_DIR  = r"../datasets/coco128/images/train2017"
+SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
 # inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
 # avg transform time: 3.2109375 ms, avg infer time: 55.2578125 ms, avg nms time: 0.5078125 ms, avg figure time: 11.234375 ms

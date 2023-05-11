@@ -1,9 +1,9 @@
-"""onnx图片需要调整BGR2RGB, 并调整通道为[B, C, H, W], 且需要归一化
-"""
 import onnxruntime as ort
 import numpy as np
 from .inference import Inference
 from .functions import check_onnx
+import os
+os.environ["CUDA_MODULE_LOADING"] = "LAZY" # Enabling it can significantly reduce device memory usage
 
 
 class OrtInference(Inference):
@@ -29,10 +29,6 @@ class OrtInference(Inference):
         # 1.检测onnx模型
         check_onnx(model_path, self.logger)
         # 2.载入模型
-        if mode in ["cuda", "tensorrt"]:
-            import os
-            os.environ["CUDA_MODULE_LOADING"] = "LAZY" # Enabling it can significantly reduce device memory usage
-            self.logger.info(f"onnxruntime CUDA_MODULE_LOADING = LAZY")
         self.model = self.get_model(model_path, mode)
         # 3.获取模型收入输出
         self.inputs = self.model.get_inputs()
@@ -53,36 +49,37 @@ class OrtInference(Inference):
         so = ort.SessionOptions()
         so.log_severity_level = 3
         providers = {
-            "cpu":  ['CPUExecutionProvider'],
+            "cpu":  ["CPUExecutionProvider"],
             # https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html
             "cuda": [
-                    ('CUDAExecutionProvider', {
-                        'device_id': 0,
-                        'arena_extend_strategy': 'kNextPowerOfTwo',
-                        'gpu_mem_limit': 2 * 1024 * 1024 * 1024, # 2GB
-                        'cudnn_conv_algo_search': 'EXHAUSTIVE',
-                        'do_copy_in_default_stream': True,
+                    ("CUDAExecutionProvider", {
+                        "device_id": 0,
+                        "arena_extend_strategy": "kNextPowerOfTwo",
+                        "gpu_mem_limit": 8 * 1024 * 1024 * 1024, # 8GB
+                        "cudnn_conv_algo_search": "EXHAUSTIVE",
+                        "do_copy_in_default_stream": True,
                     }),
-                    'CPUExecutionProvider',
+                    "CPUExecutionProvider",
                 ],
             # tensorrt
             # https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html
             # it is recommended you also register CUDAExecutionProvider to allow Onnx Runtime to assign nodes to CUDA execution provider that TensorRT does not support.
-            # set providers to ['TensorrtExecutionProvider', 'CUDAExecutionProvider'] with TensorrtExecutionProvider having the higher priority.
+            # set providers to ["TensorrtExecutionProvider", "CUDAExecutionProvider"] with TensorrtExecutionProvider having the higher priority.
             "tensorrt": [
-                    ('TensorrtExecutionProvider', {
-                        'device_id': 0,
-                        'trt_max_workspace_size': 2 * 1024 * 1024 * 1024, # 2GB
-                        'trt_fp16_enable': False,
+                    ("TensorrtExecutionProvider", {
+                        "device_id": 0,
+                        "trt_max_workspace_size": 8 * 1024 * 1024 * 1024, # 8GB
+                        "trt_fp16_enable": False,
+                        # "trt_timing_cache_enable": True, # Enabling trt_timing_cache_enable will enable ORT TRT to use TensorRT timing cache to accelerate engine build time on a device with the same compute capability.
                     }),
-                    ('CUDAExecutionProvider', {
-                        'device_id': 0,
-                        'arena_extend_strategy': 'kNextPowerOfTwo',
-                        'gpu_mem_limit': 2 * 1024 * 1024 * 1024, # 2GB
-                        'cudnn_conv_algo_search': 'EXHAUSTIVE',
-                        'do_copy_in_default_stream': True,
+                    ("CUDAExecutionProvider", {
+                        "device_id": 0,
+                        "arena_extend_strategy": "kNextPowerOfTwo",
+                        "gpu_mem_limit": 8 * 1024 * 1024 * 1024, # 8GB
+                        "cudnn_conv_algo_search": "EXHAUSTIVE",
+                        "do_copy_in_default_stream": True,
                     }),
-                    'CPUExecutionProvider',
+                    "CPUExecutionProvider",
                 ]
         }[mode]
 

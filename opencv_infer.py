@@ -11,7 +11,7 @@ config = {
 }
 
 # 实例化推理器
-inference = OpenCVInference(**config)
+inference  = OpenCVInference(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
