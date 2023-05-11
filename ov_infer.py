@@ -29,4 +29,4 @@ cv2.imwrite(SAVE_PATH, image_bgr_detect)
 IMAGE_DIR = r"../datasets/coco128/images/train2017"
 SAVE_DIR  = r"../datasets/coco128/images/train2017_res"
 # inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
-# avg transform time: 3.6015625 ms, avg infer time: 60.90625 ms, avg nms time: 0.5 ms, avg figure time: 12.828125 ms
+# avg transform time: 3.2109375 ms, avg infer time: 55.2578125 ms, avg nms time: 0.5078125 ms, avg figure time: 11.234375 ms
