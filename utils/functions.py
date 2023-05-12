@@ -77,17 +77,13 @@ def transform(image: np.ndarray, openvino_preprocess: bool = False) -> np.ndarra
     Returns:
         np.ndarray: 经过预处理的图片
     """
-    image = image.astype(np.float32)
-
-    image = image.transpose(2, 0, 1)        # [H, W, C] -> [C, H, W]
+    image = image.astype(np.float32).transpose(2, 0, 1)        # [H, W, C] -> [C, H, W]
 
     # openvino预处理会自动处理scale
     if not openvino_preprocess:
         image /= 255.0                      # 归一化
 
-    input_array = np.expand_dims(image, 0)  # [C, H, W] -> [B, C, H, W]
-
-    return input_array
+    return np.expand_dims(image, 0)  # [C, H, W] -> [B, C, H, W]
 
 
 def mulit_colors(num_classes: int):
