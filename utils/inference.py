@@ -72,7 +72,7 @@ class Inference(ABC):
 
 
     def nms(self, detections: np.ndarray) -> np.ndarray:
-        """非极大值抑制,所有类别一起做的,没有分开做,和yolov5最大的不同,没有confidence,只有box和class score
+        """非极大值抑制，没有confidence,只有box和class score
 
         Args:
             detections (np.ndarray): 检测到的数据 (8400, 84)
@@ -99,30 +99,39 @@ class Inference(ABC):
         # 置信度
         confidences    = max_cls_score[max_cls_score > self.confidence_threshold]
         # 类别index
-        class_index    = max_cls_index[max_cls_score > self.confidence_threshold]
+        class_indexes  = max_cls_index[max_cls_score > self.confidence_threshold]
 
         # [center_x, center_y, w, h] -> [x_min, y_min, w, h]
         boxes[:, 0:2] -= boxes[:, 2:4] / 2
 
-        # nms
-        nms_indexes = cv2.dnn.NMSBoxes(boxes, confidences, self.score_threshold, self.nms_threshold)
+        # 每个类别单独做nms
+        detections = []
+        unique_indexes = np.unique(class_indexes)
+        for unique_index in unique_indexes:
+            boxes_         = boxes[class_indexes==unique_index]
+            confidences_   = confidences[class_indexes==unique_index]
+            class_indexes_ = class_indexes[class_indexes==unique_index]
 
-        # nms过滤
-        boxes = boxes[nms_indexes]
+            # nms
+            nms_indexes = cv2.dnn.NMSBoxes(boxes_, confidences_, self.score_threshold, self.nms_threshold)
+
+            # 过滤
+            detections.append(np.concatenate((np.expand_dims(class_indexes_[nms_indexes], 1), np.expand_dims(confidences_[nms_indexes], 1), boxes_[nms_indexes]), axis=-1))
+
+        detections = np.concatenate(detections, axis=0)
+
         # [x_min, y_min, w, h] -> [x_min, y_min, x_max, y_max]
-        boxes[:, 2:4] += boxes[:, 0:2]
+        detections[:, 4:6] += detections[:, 2:4]
 
         # 防止框超出图片边界, 前面判断为True/False,后面选择更改的列,不选择更改的列会将整行都改为0
-        boxes[boxes[:, 0] < 0.0, 0] = 0.0
-        boxes[boxes[:, 1] < 0.0, 1] = 0.0
-        boxes[boxes[:, 2] > self.config["imgsz"][1], 2] = self.config["imgsz"][1]
-        boxes[boxes[:, 3] > self.config["imgsz"][0], 3] = self.config["imgsz"][0]
-
+        detections[detections[:, 2] < 0.0, 2] = 0.0
+        detections[detections[:, 3] < 0.0, 3] = 0.0
+        detections[detections[:, 4] > self.config["imgsz"][1], 4] = self.config["imgsz"][1]
+        detections[detections[:, 5] > self.config["imgsz"][0], 5] = self.config["imgsz"][0]
         # [
         #   [class_index, confidences, xmin, ymin, xmax, ymax],
         #   ...
         # ]
-        detections = np.concatenate((np.expand_dims(class_index[nms_indexes], 1), np.expand_dims(confidences[nms_indexes], 1), boxes), axis=-1)
         return detections
 
 
