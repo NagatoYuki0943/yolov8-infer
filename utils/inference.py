@@ -118,7 +118,11 @@ class Inference(ABC):
             # 过滤
             detections.append(np.concatenate((np.expand_dims(class_indexes_[nms_indexes], 1), np.expand_dims(confidences_[nms_indexes], 1), boxes_[nms_indexes]), axis=-1))
 
-        detections = np.concatenate(detections, axis=0)
+        # 没有检测到返回空数组
+        if len(detections) == 0:
+            return []
+        else:
+            detections = np.concatenate(detections, axis=0)
 
         # [x_min, y_min, w, h] -> [x_min, y_min, x_max, y_max]
         detections[:, 4:6] += detections[:, 2:4]
@@ -151,6 +155,9 @@ class Inference(ABC):
         Returns:
             np.ndarray: same as detections
         """
+        if len(detections) == 0:
+            return detections
+
         # 还原到原图尺寸并转化为int                                                    shape: (h, w, c)
         detections[:, 2] = detections[:, 2] / ((self.config["imgsz"][1] - delta_w) / shape[1])    # xmin
         detections[:, 3] = detections[:, 3] / ((self.config["imgsz"][0] - delta_h) / shape[0])    # ymin
@@ -286,7 +293,7 @@ class Inference(ABC):
 
         # 3. NMS
         t3 = time.time()
-        detections = self.nms(boxes[0].T)   # (1, 84, 8400) -> (84, 8400) -> (8400, 84)
+        detections = self.nms(boxes[0].T)   # [1, 84, 8400] -> [84, 8400] -> [8400, 84] ->  -> [[class_index, confidences, xmin, ymin, xmax, ymax],]
 
         # 4. 将坐标还原到原图尺寸
         detections = self.box_to_origin(detections, delta_w, delta_h, image_rgb.shape)
@@ -347,7 +354,7 @@ class Inference(ABC):
 
             # 5. NMS
             t3 = time.time()
-            detections = self.nms(boxes[0].T)   # (1, 84, 8400) -> (84, 8400) -> (8400, 84)
+            detections = self.nms(boxes[0].T)   # [1, 84, 8400] -> [84, 8400] -> [8400, 84] ->  -> [[class_index, confidences, xmin, ymin, xmax, ymax],]
 
             # 6. 将坐标还原到原图尺寸
             detections = self.box_to_origin(detections, delta_w, delta_h, image_rgb.shape)
