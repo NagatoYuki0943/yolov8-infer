@@ -110,6 +110,8 @@ names:
 # Onnxruntime推理例子
 
 > `onnxruntime-gpu` 使用显卡要使用 `cuda` 和 `cudnn`
+>
+> [NVIDIA - CUDA | onnxruntime](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)
 
 ```python
 from utils import get_image, OrtInference
@@ -421,12 +423,6 @@ yolo task=detect mode=export imgsz=640 model=weights/yolov8s.pt format=engine si
 
 > 目前不支持同时导出多种格式，每种格式都要单独导出
 
-# onnxruntime 注意事项
-
-> `onnxruntime-gpu` 使用显卡要使用 `cuda` 和 `cudnn`
->
-> [NVIDIA - CUDA | onnxruntime](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)
-
 # openvino安装
 
 ## [下载英特尔® 发行版 OpenVINO™ 工具套件 (intel.cn)](https://www.intel.cn/content/www/cn/zh/developer/tools/openvino-toolkit/download.html)
@@ -631,7 +627,9 @@ serialize(model, output_path)
 
 ## 通过 `trtexec.exe` 导出
 
-> 先通过yolov5导出onnx，再通过 `trtexec.exe` 导出 engine
+> 先通过yolov8导出onnx，再通过 `trtexec.exe` 导出 engine
+>
+> 使用 `trtexec` 导出的yolov8模型要将 `config` 中的 `trtexec` 设置为 `True`
 
 ```sh
 r> trtexec --help
@@ -812,15 +810,17 @@ r> trtexec --help
   --help, -h                  Print this message
 ```
 
-> 导出
+## trtexec example
 
 ```sh
-trtexec --onnx=yolov5s.onnx --saveEngine=yolov5s.engine --fp16	# Enable fp16 precision, in addition to fp32
-trtexec --onnx=yolov5s.onnx --saveEngine=yolov5s.engine --int8	# Enable int8 precision, in addition to fp32
-trtexec --onnx=yolov5s.onnx --saveEngine=yolov5s.engine --best	# Enable all precisions to achieve the best performance
+trtexec --onnx=yolov8s.onnx --saveEngine=yolov8s.engine     	        # Precision: FP32
+trtexec --onnx=yolov8s.onnx --saveEngine=yolov8s.engine --fp16	        # Precision: FP32+FP16
+trtexec --onnx=yolov8s.onnx --saveEngine=yolov8s.engine --int8	        # Precision: FP32+INT8
+trtexec --onnx=yolov8s.onnx --saveEngine=yolov8s.engine --fp16 --int8	# Precision: FP32+FP16+INT8
+trtexec --onnx=yolov8s.onnx --saveEngine=yolov8s.engine --best	        # Precision: FP32+FP16+INT8
 ```
 
-## 参考
+# 参考
 
 https://github.com/dacquaviva/yolov5-openvino-cpp-python
 
