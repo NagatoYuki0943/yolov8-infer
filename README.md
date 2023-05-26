@@ -109,7 +109,7 @@ names:
 
 # Onnxruntime推理例子
 
-> `onnxruntime-gpu` 使用显卡要使用 `cuda` 和 `cudnn
+> `onnxruntime-gpu` 使用显卡要使用 `cuda` 和 `cudnn`
 
 ```python
 from utils import get_image, OrtInference
@@ -146,7 +146,7 @@ SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
 
 # OpenVINO推理例子
 
-> 安装openvino方法请看openvino文件夹的`readme.md`
+> 安装openvino方法请看 [openvino安装](#openvino安装)
 
 ```python
 from utils import get_image, OVInference
@@ -184,7 +184,7 @@ SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
 
 # TensorRT推理例子
 
-> 安装tensorrt方法请看tensorrt文件夹的`readme.md`
+> 安装tensorrt方法请看 [tensorrt安装](#tensorrt安装)
 >
 > 注意yolov8导出的engine会在engine文件开始添加metadata，trtexec导出的模型不会添加，因此注意engine模型和`trtexec`参数
 
@@ -607,11 +607,26 @@ serialize(model, output_path)
 
 # tensorrt安装
 
-1. 安装cuda
-2. 安装cudnn
-3. 解压tensorrt
+1. 安装cuda https://developer.nvidia.com/cuda-toolkit
+2. 安装cudnn https://developer.nvidia.cn/zh-cn/cudnn
+
+3. 解压tensorrt https://developer.nvidia.com/zh-cn/tensorrt
+
 4. 将 `tensort` 下的`bin`和`lib`库添加到环境变量
+
+   ```sh
+   # cuda
+   export CUDA_PATH=/usr/local/cuda
+   export PATH=/usr/local/cuda/bin:$PATH
+   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+   
+   # tensorrt
+   export PATH=/home/TensorRT/bin:$PATH
+   export LD_LIBRARY_PATH=/home/TensorRT/lib:$LD_LIBRARY_PATH
+   ```
+
 5. 安装 `tensorrt` 目录下 `python` , `onnx_graphsurgeon` 和 `graphsurgeon` 下的python包
+
 6. 安装`pycuda` like `pip install pycuda`，安装失败可以在这个页面下载安装 `[Archived: Python Extension Packages for Windows - Christoph Gohlke (uci.edu)](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pycuda)`
 
 ## 通过 `trtexec.exe` 导出
