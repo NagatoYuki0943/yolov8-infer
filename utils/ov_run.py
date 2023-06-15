@@ -56,12 +56,6 @@ class OVInference(Inference):
         Returns:
             CompileModel: 编译好的模型
         """
-        # 这里乘以255相当于归一化和标准化同时计算
-        # mean = np.array((0.485, 0.456, 0.406)) * 255
-        # std  = np.array((0.229, 0.224, 0.225)) * 255
-        # mean = np.array((0.485, 0.456, 0.406)) * 255
-        std  = np.array((255, 255, 255))
-
         # Step 1. Initialize OpenVINO Runtime core
         core = ov.Core()
         # Step 2. Read a model
@@ -69,6 +63,11 @@ class OVInference(Inference):
 
         # 使用openvino数据预处理
         if self.openvino_preprocess:
+            # 这里乘以255相当于归一化和标准化同时计算
+            # mean = np.array((0.485, 0.456, 0.406)) * 255
+            # std  = np.array((0.229, 0.224, 0.225)) * 255
+            std  = np.array((255, 255, 255))
+
             # Step 4. Inizialize Preprocessing for the model  openvino数据预处理
             # https://mp.weixin.qq.com/s/4lkDJC95at2tK_Zd62aJxw
             # https://blog.csdn.net/sandmangu/article/details/107181289
