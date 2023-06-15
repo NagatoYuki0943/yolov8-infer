@@ -1,4 +1,5 @@
 # refer: https://github.com/NagatoYuki0943/14_tensorrt-python-samples/blob/main/python/efficientdet/infer.py
+# https://github.com/NVIDIA/TensorRT/blob/main/quickstart/SemanticSegmentation/tutorial-runtime.ipynb
 
 import numpy as np
 try:
@@ -140,8 +141,8 @@ class TensorRTInfer(Inference):
         """
         # 将内存中的图片移动到显存上                             将图片内存变得连续
         cuda.memcpy_htod_async(self.inputs[0]['allocation'], np.ascontiguousarray(images), self.stream)
-        self.context.execute_async_v2(self.allocations, self.stream.handle)     # infer
-        for o in range(len(self.outputs)):                                      # 将显存中的结果移动到内存上
+        self.context.execute_async_v2(bindings=self.allocations, stream_handle=self.stream.handle)  # infer
+        for o in range(len(self.outputs)):                                                          # 将显存中的结果移动到内存上
             cuda.memcpy_dtoh_async(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'], self.stream)
 
         # result = [o['host_allocation'] for o in self.outputs] # 取出结果
@@ -159,7 +160,7 @@ class TensorRTInfer(Inference):
     #     """
     #     # 将内存中的图片移动到显存上                       将图片内存变得连续
     #     cuda.memcpy_htod(self.inputs[0]['allocation'], np.ascontiguousarray(images))
-    #     self.context.execute_v2(self.allocations)              # infer
+    #     self.context.execute_v2(bindings=self.allocations)     # infer
     #     for o in range(len(self.outputs)):                     # 将显存中的结果移动到内存上
     #         cuda.memcpy_dtoh(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'])
 
