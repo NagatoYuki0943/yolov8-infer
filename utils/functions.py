@@ -52,18 +52,25 @@ def resize_and_pad(image, new_shape):
         Tuple: 缩放的图片, 填充的宽, 填充的高
     """
     old_size = image.shape[:2]
-    ratio = float(new_shape[-1]/max(old_size)) #fix to accept also rectangular images
-    new_size = tuple([int(x*ratio) for x in old_size])
+    ratio = float(new_shape[-1] / max(old_size)) # fix to accept also rectangular images
+    new_size = tuple([int(x * ratio) for x in old_size])
     # 缩放高宽的长边为640
     image = cv2.resize(image, (new_size[1], new_size[0]))
     # 填充bottom和right的长度
     delta_w = new_shape[1] - new_size[1]
     delta_h = new_shape[0] - new_size[0]
     # 使用灰色填充到640*640的形状
-    color = [100, 100, 100]
-    #                                 src, top, bottom, left, right
-    image_reized = cv2.copyMakeBorder(image, 0, delta_h, 0, delta_w, cv2.BORDER_CONSTANT, value=color)
-
+    color = [128, 128, 128]
+    # 右下方向添加灰条
+    image_reized = cv2.copyMakeBorder(
+        src=image,
+        top=0,
+        bottom=delta_h,
+        left=0,
+        right=delta_w,
+        borderType=cv2.BORDER_CONSTANT,
+        value=color
+    )
     return image_reized, delta_w ,delta_h
 
 
@@ -374,6 +381,44 @@ def json2xml(data: dict, path: str, file_name: str):
     xml_path = os.path.join(path, file_name+".xml")
     # 打开使用utf-8,写入时也需要utf-8
     new_tree.write(xml_path, encoding="utf-8")
+
+
+def xywh2xyxy(x: np.ndarray) -> np.ndarray:
+    """将xyhw格式的坐标转换为xyxy格式的坐标
+        xyhw指的是 x_center, y_center, w, h
+
+    Args:
+        x (np.ndarray): x_center, y_center, w, h 形状的数据
+
+    Returns:
+        np.ndarray: xmin, ymin, xmax, ymax 形状的数据
+    """
+    y = x.copy()
+    y[..., 0] -= y[..., 2] / 2  # x_center -> xmin
+    y[..., 1] -= y[..., 3] / 2  # y_center -> ymin
+    y[..., 2] += y[..., 0]      # w -> xmax
+    y[..., 3] += y[..., 1]      # h -> ymax
+    return y
+
+
+def xyxy2xywh(x: np.ndarray) -> np.ndarray:
+    """将xyxy格式的坐标转换为xywh格式的坐标
+        xyhw指的是 x_center, y_center, w, h
+
+    Args:
+        x (np.ndarray): xmin, ymin, xmax, ymax 形状的数据
+
+    Returns:
+        np.ndarray: x_center, y_center, w, h 形状的数据
+    """
+    w = x[..., 2] = x[..., 0]
+    h = x[..., 3] = x[..., 1]
+    y = x.copy()
+    y[..., 0] += w / 2  # xmin -> x_center
+    y[..., 1] += h / 2  # ymin -> y_center
+    y[..., 2] = w       # xmax -> w
+    y[..., 3] = h       # ymax -> h
+    return y
 
 
 if __name__ == "__main__":

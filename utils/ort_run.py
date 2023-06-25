@@ -120,5 +120,5 @@ class OrtInference(Inference):
         """
 
         # 推理
-        boxes = self.model.run(None, {self.inputs[0].name: images})    # 返回值为list
+        boxes: list[np.ndarray] = self.model.run(None, {self.inputs[0].name: images})    # 返回值为list
         return boxes[0]

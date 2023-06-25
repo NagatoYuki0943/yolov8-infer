@@ -109,8 +109,8 @@ class OVInference(Inference):
         # result0       = infer_request.get_output_tensor(self.outputs[0].index) # 通过方法获取单独结果  outputs[0].index 可以用0 1代替
 
         # 1.2 模型直接推理
-        # results = self.model({self.inputs[0]: x})
-        # results = self.model({0: x})
-        results = self.model([images])   # return dict
-        boxes = results[self.outputs[0]]
+        # results = self.model({self.inputs[0]: images})
+        # results = self.model({0: images})
+        results: dict = self.model([images])   # return dict
+        boxes: np.ndarray = results[self.outputs[0]]
         return boxes

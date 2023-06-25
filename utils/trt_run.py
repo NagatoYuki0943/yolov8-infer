@@ -145,11 +145,11 @@ class TensorRTInfer(Inference):
         for o in range(len(self.outputs)):                                                          # 将显存中的结果移动到内存上
             cuda.memcpy_dtoh_async(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'], self.stream)
 
-        # result = [o['host_allocation'] for o in self.outputs] # 取出结果
-        result = self.outputs[0]['host_allocation']
-
         # syncronize threads
         self.stream.synchronize()
+
+        # result: list[np.ndarray] = [o['host_allocation'] for o in self.outputs] # 取出结果
+        result: np.ndarray = self.outputs[0]['host_allocation']
         return result
 
     # def infer(self, images: np.ndarray) -> np.ndarray:
@@ -164,6 +164,6 @@ class TensorRTInfer(Inference):
     #     for o in range(len(self.outputs)):                     # 将显存中的结果移动到内存上
     #         cuda.memcpy_dtoh(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'])
 
-    #     # result = [o['host_allocation'] for o in self.outputs] # 取出结果
-    #     result = self.outputs[0]['host_allocation']
+    #     # result: list[np.ndarray] = [o['host_allocation'] for o in self.outputs] # 取出结果
+    #     result: np.ndarray = self.outputs[0]['host_allocation']
     #     return result

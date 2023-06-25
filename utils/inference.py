@@ -71,11 +71,11 @@ class Inference(ABC):
         self.logger.info("warmup finish")
 
 
-    def nms(self, detections: np.ndarray) -> np.ndarray:
+    def nms(self, detections_in: np.ndarray) -> np.ndarray:
         """非极大值抑制，没有confidence,只有box和class score
 
         Args:
-            detections (np.ndarray): 检测到的数据 (8400, 84)
+            detections_in (np.ndarray): 检测到的数据 (8400, 84)
 
         Returns:
             (np.ndarray): np.float32
@@ -84,10 +84,11 @@ class Inference(ABC):
                     ...
                 ]
         """
+        detections = detections_in.copy()
         # 位置坐标
-        loc            = detections[:, :4]
+        loc            = detections[..., :4]
         # 分类
-        cls            = detections[:, 4:]
+        cls            = detections[..., 4:]
 
         # 最大分类index
         max_cls_index  = cls.argmax(axis=-1)
@@ -102,7 +103,8 @@ class Inference(ABC):
         class_indexes  = max_cls_index[max_cls_score > self.confidence_threshold]
 
         # [center_x, center_y, w, h] -> [x_min, y_min, w, h]
-        boxes[:, 0:2] -= boxes[:, 2:4] / 2
+        boxes[..., 0] -= boxes[..., 2] / 2
+        boxes[..., 1] -= boxes[..., 3] / 2
 
         # 每个类别单独做nms
         detections = []
@@ -116,7 +118,14 @@ class Inference(ABC):
             nms_indexes = cv2.dnn.NMSBoxes(boxes_, confidences_, self.score_threshold, self.nms_threshold)
 
             # 过滤
-            detections.append(np.concatenate((np.expand_dims(class_indexes_[nms_indexes], 1), np.expand_dims(confidences_[nms_indexes], 1), boxes_[nms_indexes]), axis=-1))
+            detections.append(
+                np.concatenate(
+                    (np.expand_dims(class_indexes_[nms_indexes], -1),
+                     np.expand_dims(confidences_[nms_indexes], -1),
+                     boxes_[nms_indexes]),
+                    axis=-1
+                )
+            )
 
         # 没有检测到返回空数组
         if len(detections) == 0:
@@ -125,13 +134,9 @@ class Inference(ABC):
             detections = np.concatenate(detections, axis=0)
 
         # [x_min, y_min, w, h] -> [x_min, y_min, x_max, y_max]
-        detections[:, 4:6] += detections[:, 2:4]
+        detections[..., 4] += detections[..., 2]
+        detections[..., 5] += detections[..., 3]
 
-        # 防止框超出图片边界, 前面判断为True/False,后面选择更改的列,不选择更改的列会将整行都改为0
-        detections[detections[:, 2] < 0.0, 2] = 0.0
-        detections[detections[:, 3] < 0.0, 3] = 0.0
-        detections[detections[:, 4] > self.config["imgsz"][1], 4] = self.config["imgsz"][1]
-        detections[detections[:, 5] > self.config["imgsz"][0], 5] = self.config["imgsz"][0]
         # [
         #   [class_index, confidences, xmin, ymin, xmax, ymax],
         #   ...
@@ -139,30 +144,38 @@ class Inference(ABC):
         return detections
 
 
-    def box_to_origin(self, detections: np.ndarray, delta_w: int, delta_h: int, shape: np.ndarray) -> np.ndarray:
+    def box_to_origin(self, detections_in: np.ndarray, delta_w: int, delta_h: int, shape: np.ndarray) -> np.ndarray:
         """将将检测结果的坐标还原到原图尺寸
 
         Args:
-            detections (np.ndarray): np.float32
+            detections_in (np.ndarray): np.float32
                     [
                         [class_index, confidences, xmin, ymin, xmax, ymax],
                         ...
                     ]
             delta_w (int):      填充的宽
             delta_h (int):      填充的高
-            shape (np.ndarray): (h, w, c)
+            shape (np.ndarray): 原始形状 (h, w, c)
 
         Returns:
             np.ndarray: same as detections
         """
-        if len(detections) == 0:
-            return detections
+        if len(detections_in) == 0:
+            return detections_in
 
-        # 还原到原图尺寸并转化为int                                                    shape: (h, w, c)
-        detections[:, 2] = detections[:, 2] / ((self.config["imgsz"][1] - delta_w) / shape[1])    # xmin
-        detections[:, 3] = detections[:, 3] / ((self.config["imgsz"][0] - delta_h) / shape[0])    # ymin
-        detections[:, 4] = detections[:, 4] / ((self.config["imgsz"][1] - delta_w) / shape[1])    # xmax
-        detections[:, 5] = detections[:, 5] / ((self.config["imgsz"][0] - delta_h) / shape[0])    # ymax
+        detections = detections_in.copy()
+        # 还原到原图尺寸
+        detections[..., 2] = detections[..., 2] / (self.config["imgsz"][1] - delta_w) * shape[1]    # xmin
+        detections[..., 3] = detections[..., 3] / (self.config["imgsz"][0] - delta_h) * shape[0]    # ymin
+        detections[..., 4] = detections[..., 4] / (self.config["imgsz"][1] - delta_w) * shape[1]    # xmax
+        detections[..., 5] = detections[..., 5] / (self.config["imgsz"][0] - delta_h) * shape[0]    # ymax
+
+        # 防止框超出图片边界, 前面判断为True/False,后面选择更改的列,不选择更改的列会将整行都改为0
+        detections[detections[..., 2] < 0.0, 2] = 0.0
+        detections[detections[..., 3] < 0.0, 3] = 0.0
+        detections[detections[..., 4] > shape[1], 4] = shape[1]
+        detections[detections[..., 5] > shape[0], 5] = shape[0]
+
         return detections
 
 

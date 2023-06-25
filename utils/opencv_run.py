@@ -33,5 +33,5 @@ class OpenCVInference(Inference):
         """
         # 推理
         self.model.setInput(images)
-        boxes = self.model.forward()
+        boxes: np.ndarray = self.model.forward()
         return boxes
