@@ -367,7 +367,7 @@ class Inference(ABC):
             t4 = time.time()
 
             # 7. 画图
-            if ignore_overlap_box: # # 忽略重叠的小框,不同于nms
+            if ignore_overlap_box: # 忽略重叠的小框,不同于nms
                 detections = ignore_overlap_boxes(detections)
             image = self.figure_boxes(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
             t5 = time.time()
