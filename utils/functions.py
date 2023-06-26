@@ -128,7 +128,6 @@ def check_onnx(onnx_path, logger: logging.Logger):
 def np_softmax(array: np.ndarray, axis=-1) -> np.ndarray:
     array -= np.max(array)
     array = np.exp(array)
-    print(array)
     return array / np.sum(array, axis=axis)
 
 
