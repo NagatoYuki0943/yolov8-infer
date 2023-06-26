@@ -52,13 +52,13 @@ def resize_and_pad(image, new_shape):
         Tuple: 缩放的图片, 填充的宽, 填充的高
     """
     old_size = image.shape[:2]
-    ratio = float(new_shape[-1] / max(old_size)) # fix to accept also rectangular images
-    new_size = tuple([int(x * ratio) for x in old_size])
+    ratio = min(new_shape[0] / old_size[0], new_shape[1] / old_size[1])
+    new_size = [int(x * ratio) for x in old_size]
     # 缩放高宽的长边为640
     image = cv2.resize(image, (new_size[1], new_size[0]))
     # 填充bottom和right的长度
-    delta_w = new_shape[1] - new_size[1]
     delta_h = new_shape[0] - new_size[0]
+    delta_w = new_shape[1] - new_size[1]
     # 使用灰色填充到640*640的形状
     color = [128, 128, 128]
     # 右下方向添加灰条
