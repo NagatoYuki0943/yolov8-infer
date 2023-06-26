@@ -27,29 +27,29 @@ def load_yaml(yaml_path: str) -> dict:
     return y
 
 
-def get_image(image_path: str):
+def get_image(image_path: str) -> np.ndarray:
     """获取图像
 
     Args:
         image_path (str): 图片路径
 
     Returns:
-        Tuple: 原图, 输入的tensor, 填充的宽, 填充的高
+        Tuple: 原图
     """
     image_bgr = cv2.imread(str(Path(image_path)))
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)  # BGR2RGB
     return image_rgb
 
 
-def resize_and_pad(image, new_shape):
-    """缩放图片并填充为正方形
+def resize_and_pad(image: np.ndarray, new_shape: tuple[int]) -> tuple[np.ndarray, float]:
+    """缩放图片并填充为正方形,右下填充
 
     Args:
         image (np.Array):      图片
         new_shape (list[int]): [h, w]
 
     Returns:
-        Tuple: 缩放的图片, 填充的宽, 填充的高
+        Tuple: 缩放的图片, 缩放比例
     """
     old_size = image.shape[:2]
     ratio = min(new_shape[0] / old_size[0], new_shape[1] / old_size[1])
@@ -71,7 +71,7 @@ def resize_and_pad(image, new_shape):
         borderType=cv2.BORDER_CONSTANT,
         value=color
     )
-    return image_reized, delta_w ,delta_h
+    return image_reized, ratio
 
 
 def transform(image: np.ndarray, openvino_preprocess: bool = False) -> np.ndarray:
