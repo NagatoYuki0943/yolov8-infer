@@ -71,76 +71,74 @@ class Inference(ABC):
         self.logger.info("warmup finish")
 
 
-    def nms(self, detections_in: np.ndarray) -> np.ndarray:
+    def nms(self, detections_in: np.ndarray) -> list[np.ndarray]:
         """非极大值抑制，没有confidence,只有box和class score
 
         Args:
-            detections_in (np.ndarray): 检测到的数据 (8400, 84)
+            detections_in (np.ndarray): 检测到的数据 [b, 8400, 84]
 
         Returns:
-            (np.ndarray): np.float32
+            (list[np.ndarray]): list代表每张图片,里面是一个ndarray,代表一张图片的结果,如果图片没有结果就为 []
                 [
-                    [class_index, confidences, xmin, ymin, xmax, ymax],
-                    ...
+                    [[class_index, confidences, xmin, ymin, xmax, ymax],
+                    ..]
                 ]
         """
-        detections = detections_in.copy()
-        # 位置坐标
-        loc            = detections[..., :4]
-        # 分类
-        cls            = detections[..., 4:]
-
-        # 最大分类index
-        max_cls_index  = cls.argmax(axis=-1)
-        # 最大分类score
-        max_cls_score  = cls.max(axis=-1)
-
-        # 位置
-        boxes          = loc[max_cls_score > self.confidence_threshold]
-        # 置信度
-        confidences    = max_cls_score[max_cls_score > self.confidence_threshold]
-        # 类别index
-        class_indexes  = max_cls_index[max_cls_score > self.confidence_threshold]
-
-        # [center_x, center_y, w, h] -> [x_min, y_min, w, h]
-        boxes[..., 0] -= boxes[..., 2] / 2
-        boxes[..., 1] -= boxes[..., 3] / 2
-
-        # 每个类别单独做nms
         detections = []
-        unique_indexes = np.unique(class_indexes)
-        for unique_index in unique_indexes:
-            boxes_         = boxes[class_indexes==unique_index]
-            confidences_   = confidences[class_indexes==unique_index]
-            class_indexes_ = class_indexes[class_indexes==unique_index]
+        # 循环batch
+        for detection_in in detections_in:
+            # 位置坐标
+            loc            = detection_in[..., :4]
+            # 分类
+            cls            = detection_in[..., 4:]
 
-            # nms
-            nms_indexes = cv2.dnn.NMSBoxes(boxes_, confidences_, self.score_threshold, self.nms_threshold)
+            # 最大分类index
+            max_cls_index  = cls.argmax(axis=-1)
+            # 最大分类score
+            max_cls_score  = cls.max(axis=-1)
 
-            # 过滤
-            detections.append(
-                np.concatenate(
-                    (np.expand_dims(class_indexes_[nms_indexes], -1),
-                     np.expand_dims(confidences_[nms_indexes], -1),
-                     boxes_[nms_indexes]),
-                    axis=-1
+            # 位置
+            boxes          = loc[max_cls_score > self.confidence_threshold]
+            # 置信度
+            confidences    = max_cls_score[max_cls_score > self.confidence_threshold]
+            # 类别index
+            class_indexes  = max_cls_index[max_cls_score > self.confidence_threshold]
+
+            # [center_x, center_y, w, h] -> [x_min, y_min, w, h]
+            boxes[..., 0] -= boxes[..., 2] / 2
+            boxes[..., 1] -= boxes[..., 3] / 2
+
+            # 每个类别单独做nms
+            detection = []
+            unique_indexes = np.unique(class_indexes)
+            for unique_index in unique_indexes:
+                boxes_          = boxes[class_indexes==unique_index]
+                confidences_    = confidences[class_indexes==unique_index]
+                class_indexes_  = class_indexes[class_indexes==unique_index]
+
+                # nms
+                nms_indexes     = cv2.dnn.NMSBoxes(boxes_, confidences_, self.score_threshold, self.nms_threshold)
+
+                # [x_min, y_min, w, h] -> [x_min, y_min, x_max, y_max]
+                boxes_[..., 2] += boxes_[..., 0]
+                boxes_[..., 3] += boxes_[..., 1]
+
+                # 过滤
+                detection.append(
+                    np.concatenate(
+                        (np.expand_dims(class_indexes_[nms_indexes], -1),
+                        np.expand_dims(confidences_[nms_indexes], -1),
+                        boxes_[nms_indexes]),
+                        axis=-1
+                    )
                 )
-            )
 
-        # 没有检测到返回空数组
-        if len(detections) == 0:
-            return []
-        else:
-            detections = np.concatenate(detections, axis=0)
+            # 没有检测到添加空数组
+            if len(detection) == 0:
+                detections.append([])
+            else:
+                detections.append(np.concatenate(detection, axis=0))
 
-        # [x_min, y_min, w, h] -> [x_min, y_min, x_max, y_max]
-        detections[..., 4] += detections[..., 2]
-        detections[..., 5] += detections[..., 3]
-
-        # [
-        #   [class_index, confidences, xmin, ymin, xmax, ymax],
-        #   ...
-        # ]
         return detections
 
 
@@ -302,14 +300,13 @@ class Inference(ABC):
         # numpy float16 速度慢 https://stackoverflow.com/questions/56697332/float16-is-much-slower-than-float32-and-float64-in-numpy
         # 传递参数时转变类型比传递后再转换要快
         boxes = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
-        # print(boxes.shape)        # (1, 84, 8400)
 
         # 3. NMS
         t3 = time.time()
-        detections = self.nms(boxes[0].T)   # [1, 84, 8400] -> [84, 8400] -> [8400, 84] ->  -> [[class_index, confidences, xmin, ymin, xmax, ymax],]
+        detections = self.nms(boxes.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
         # 4. 将坐标还原到原图尺寸
-        detections = self.box_to_origin(detections, delta_w, delta_h, image_rgb.shape)
+        detections = self.box_to_origin(detections[0], delta_w, delta_h, image_rgb.shape)
         t4 = time.time()
 
         # 5. 画图或者获取json
@@ -367,10 +364,10 @@ class Inference(ABC):
 
             # 5. NMS
             t3 = time.time()
-            detections = self.nms(boxes[0].T)   # [1, 84, 8400] -> [84, 8400] -> [8400, 84] ->  -> [[class_index, confidences, xmin, ymin, xmax, ymax],]
+            detections = self.nms(boxes.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
             # 6. 将坐标还原到原图尺寸
-            detections = self.box_to_origin(detections, delta_w, delta_h, image_rgb.shape)
+            detections = self.box_to_origin(detections[0], delta_w, delta_h, image_rgb.shape)
 
             t4 = time.time()
             # 7. 画图
