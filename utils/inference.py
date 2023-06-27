@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import os
+from pathlib import Path
 from collections import Counter
 import logging, coloredlogs
 from .functions import *
@@ -38,8 +39,9 @@ class Inference(ABC):
         self.logger: logging.Logger = logging.getLogger(name="Inference")
 
         # 保存log
-        if not os.path.exists("./logs"):
-            os.makedirs("./logs")
+        log_path = Path("./logs")
+        if not log_path.exists():
+            log_path.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
                             filename="./logs/log.txt",
                             level=logging.DEBUG,
@@ -330,9 +332,10 @@ class Inference(ABC):
             save_xml (bool, optional):           是否保存xml文件. Defaults to False.
             ignore_overlap_box (bool, optional): 是否忽略重叠的小框,不同于nms. Defaults to False.
         """
-        if not os.path.exists(save_dir):
+        save_path = Path(save_dir)
+        if not save_path.exists():
             self.logger.info(f"The save path {save_dir} does not exist, it has been created")
-            os.makedirs(save_dir)
+            save_path.mkdir(parents=True, exist_ok=True)
 
         # 1.获取文件夹中所有图片
         image_paths = os.listdir(image_dir)
@@ -384,7 +387,7 @@ class Inference(ABC):
             self.logger.info(f"transform time: {trans_time} ms, infer time: {infer_time} ms, nms time: {nms_time} ms, figure time: {figure_time} ms")
 
             # 9.保存图片
-            cv2.imwrite(os.path.join(save_dir, image_file), image)
+            cv2.imwrite(str(save_path / image_file), image)
             # 10.保存xml
             if save_xml:
                 array2xml(detections, image_rgb.shape, self.config["names"], save_dir, "".join(image_file.split(".")[:-1]))

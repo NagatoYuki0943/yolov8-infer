@@ -1,4 +1,3 @@
-import os
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import fromstring
 import copy
@@ -333,7 +332,7 @@ def array2xml(data: np.ndarray, shape: tuple[int], names: list[str], path: str, 
     # 缩进root
     indent(root)
     new_tree = ET.ElementTree(root)
-    xml_path = os.path.join(path, file_name+".xml")
+    xml_path = Path(path) / (file_name + ".xml")
     # 打开使用utf-8,写入时也需要utf-8
     new_tree.write(xml_path, encoding="utf-8")
 
@@ -377,7 +376,7 @@ def json2xml(data: dict, path: str, file_name: str):
     # 缩进root
     indent(root)
     new_tree = ET.ElementTree(root)
-    xml_path = os.path.join(path, file_name+".xml")
+    xml_path = Path(path) / (file_name + ".xml")
     # 打开使用utf-8,写入时也需要utf-8
     new_tree.write(xml_path, encoding="utf-8")
 
