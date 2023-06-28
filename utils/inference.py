@@ -145,7 +145,7 @@ class Inference(ABC):
 
 
     def box_to_origin(self, detections_in: np.ndarray, ratio: float, shape: np.ndarray) -> np.ndarray:
-        """将将检测结果的坐标还原到原图尺寸
+        """将检测结果的坐标还原到原图尺寸
 
         Args:
             detections_in (np.ndarray): np.float32
