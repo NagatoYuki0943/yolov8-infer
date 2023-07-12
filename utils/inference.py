@@ -46,7 +46,6 @@ class Inference(ABC):
                             filename="./logs/log.txt",
                             level=logging.DEBUG,
                             filemode="a")
-        coloredlogs.install(level="DEBUG")
         # level: DEBUG, INFO, WARNING, ERROR, CRITICAL
         coloredlogs.install(level="DEBUG", logger=self.logger)
 

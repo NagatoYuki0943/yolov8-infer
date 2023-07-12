@@ -1,5 +1,6 @@
 numpy
 opencv-python
+coloredlogs
 
 # onnxruntime   # CPU
 onnxruntime-gpu # GPU 不要和cpu版本同时安装
