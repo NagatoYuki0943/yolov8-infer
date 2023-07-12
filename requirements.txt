@@ -9,5 +9,7 @@ onnxruntime-gpu # GPU 不要和cpu版本同时安装
 # tensorrt # 安装方式在trt的README.md中
 # pycuda
 
+# ncnn
+
 colorsys
 PyYAML
