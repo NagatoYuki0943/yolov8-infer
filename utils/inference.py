@@ -3,6 +3,7 @@ import numpy as np
 import os
 from pathlib import Path
 from collections import Counter
+import time
 import logging, coloredlogs
 from .functions import *
 
@@ -42,10 +43,14 @@ class Inference(ABC):
         log_path = Path("./logs")
         if not log_path.exists():
             log_path.mkdir(parents=True, exist_ok=True)
-        logging.basicConfig(format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
-                            filename="./logs/log.txt",
-                            level=logging.DEBUG,
-                            filemode="a")
+        t = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+        filename = f"{log_path}/{t}.log"
+        logging.basicConfig(
+            format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
+            filename=filename,
+            level=logging.DEBUG,
+            filemode="a"
+        )
         # level: DEBUG, INFO, WARNING, ERROR, CRITICAL
         coloredlogs.install(level="DEBUG", logger=self.logger)
 
