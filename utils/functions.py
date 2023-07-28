@@ -8,7 +8,7 @@ import time
 import numpy as np
 import colorsys
 from pathlib import Path
-import logging
+import logging, coloredlogs
 
 
 def load_yaml(yaml_path: str) -> dict:
@@ -417,6 +417,29 @@ def xyxy2xywh(x: np.ndarray) -> np.ndarray:
     y[..., 2] = w       # xmax -> w
     y[..., 3] = h       # ymax -> h
     return y
+
+
+def get_logger(
+    save_dir: str = "./logs",
+    file = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+) -> logging.Logger:
+    # logger
+    logger: logging.Logger = logging.getLogger(name="Inference")
+
+    # 保存log
+    log_path = Path(save_dir)
+    if not log_path.exists():
+        log_path.mkdir(parents=True, exist_ok=True)
+    filename = f"{log_path}/{file}.log"
+    logging.basicConfig(
+        format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
+        filename=filename,
+        level=logging.DEBUG,
+        filemode="a"
+    )
+    # level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    coloredlogs.install(level="DEBUG", logger=logger)
+    return logger
 
 
 if __name__ == "__main__":

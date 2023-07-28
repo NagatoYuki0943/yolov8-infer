@@ -4,18 +4,18 @@ import os
 from pathlib import Path
 from collections import Counter
 import time
-import logging, coloredlogs
 from .functions import *
 
 
 class Inference(ABC):
-    def __init__(self,
-                 yaml_path: str,
-                 confidence_threshold: float = 0.25,
-                 score_threshold:      float = 0.2,
-                 nms_threshold:        float = 0.45,
-                 openvino_preprocess:   bool = False,
-                 ) -> None:
+    def __init__(
+        self,
+        yaml_path: str,
+        confidence_threshold: float = 0.25,
+        score_threshold:      float = 0.2,
+        nms_threshold:        float = 0.45,
+        openvino_preprocess:   bool = False,
+    ) -> None:
         """父类推理器
 
         Args:
@@ -37,22 +37,7 @@ class Inference(ABC):
         self.colors = mulit_colors(len(self.config["names"].keys()))
 
         # logger
-        self.logger: logging.Logger = logging.getLogger(name="Inference")
-
-        # 保存log
-        log_path = Path("./logs")
-        if not log_path.exists():
-            log_path.mkdir(parents=True, exist_ok=True)
-        t = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-        filename = f"{log_path}/{t}.log"
-        logging.basicConfig(
-            format="%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s",
-            filename=filename,
-            level=logging.DEBUG,
-            filemode="a"
-        )
-        # level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        coloredlogs.install(level="DEBUG", logger=self.logger)
+        self.logger = get_logger()
 
 
     @abstractmethod
@@ -280,7 +265,12 @@ class Inference(ABC):
         return detect
 
 
-    def single(self, image_rgb: np.ndarray, only_get_boxes: bool = False, ignore_overlap_box: bool = False) -> tuple[dict, np.ndarray] | tuple[dict, None]:
+    def single(
+        self,
+        image_rgb: np.ndarray,
+        only_get_boxes: bool = False,
+        ignore_overlap_box: bool = False
+    ) -> tuple[dict, np.ndarray] | tuple[dict, None]:
         """单张图片推理
 
         Args:
@@ -327,7 +317,13 @@ class Inference(ABC):
             return detect, None
 
 
-    def multi(self, image_dir: str, save_dir: str, save_xml: bool = False, ignore_overlap_box: bool = False) -> None:
+    def multi(
+        self,
+        image_dir: str,
+        save_dir: str,
+        save_xml: bool = False,
+        ignore_overlap_box: bool = False
+    ) -> None:
         """单张图片推理
 
         Args:
