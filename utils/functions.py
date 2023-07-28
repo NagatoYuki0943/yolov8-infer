@@ -83,7 +83,7 @@ def transform(image: np.ndarray, openvino_preprocess: bool = False) -> np.ndarra
     Returns:
         np.ndarray: 经过预处理的图片
     """
-    image = image.astype(np.float32).transpose(2, 0, 1)        # [H, W, C] -> [C, H, W]
+    image = image.transpose(2, 0, 1).astype(np.float32)        # [H, W, C] -> [C, H, W]
 
     # openvino预处理会自动处理scale
     if not openvino_preprocess:
