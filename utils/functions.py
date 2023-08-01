@@ -381,9 +381,9 @@ def json2xml(data: dict, path: str, file_name: str):
     new_tree.write(xml_path, encoding="utf-8")
 
 
-def xywh2xyxy(x: np.ndarray) -> np.ndarray:
-    """将xyhw格式的坐标转换为xyxy格式的坐标
-        xyhw指的是 x_center, y_center, w, h
+def cxcywh2xyxy(x: np.ndarray) -> np.ndarray:
+    """将cxcyhw格式的坐标转换为xyxy格式的坐标
+        cxcyhw指的是 x_center, y_center, w, h
 
     Args:
         x (np.ndarray): x_center, y_center, w, h 形状的数据
@@ -399,9 +399,9 @@ def xywh2xyxy(x: np.ndarray) -> np.ndarray:
     return y
 
 
-def xyxy2xywh(x: np.ndarray) -> np.ndarray:
-    """将xyxy格式的坐标转换为xywh格式的坐标
-        xyhw指的是 x_center, y_center, w, h
+def xyxy2cxcywh(x: np.ndarray) -> np.ndarray:
+    """将xyxy格式的坐标转换为cxcywh格式的坐标
+        cxcyhw指的是 x_center, y_center, w, h
 
     Args:
         x (np.ndarray): xmin, ymin, xmax, ymax 形状的数据
