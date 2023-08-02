@@ -41,11 +41,11 @@ class Inference(ABC):
 
 
     @abstractmethod
-    def infer(self, image: np.ndarray) -> np.ndarray:
+    def infer(self, images: np.ndarray) -> np.ndarray:
         """推理图片
 
         Args:
-            image (np.ndarray): 图片
+            images (np.ndarray): 图片
 
         Returns:
             np.ndarray: 推理结果
