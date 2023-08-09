@@ -82,7 +82,8 @@ class OVInference(Inference):
             # 指定模型输入形状
             ppp.input(0).model().set_layout(Layout("NCHW"))
             # 指定模型输出类型
-            ppp.output(0).tensor().set_element_type(Type.f32)
+            for i in range(len(model.outputs)):
+                ppp.output(i).tensor().set_element_type(Type.f32)
 
             # Embed above steps in the graph
             model = ppp.build()
