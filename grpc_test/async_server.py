@@ -1,10 +1,12 @@
 import numpy as np
+from PIL import Image
 import cv2
 import os
 import time
 import grpc
 import json
 from concurrent import futures
+import requests
 import base64
 import object_detect_pb2
 import object_detect_pb2_grpc
@@ -12,6 +14,7 @@ import asyncio
 import sys
 sys.path.append("../")
 from utils import Inference, OrtInference, json2xml
+from funcs import check_is_url
 
 
 SERVER_HOST      = r"[::]:50051"
@@ -31,29 +34,20 @@ class Server(object_detect_pb2_grpc.YoloDetectServicer):
         v8_detect是proto中service YoloDetecte中的rpc v8_detect
         """
         #=====================接收图片=====================#
-        try:
-            # 解码图片                                  image是Request中设定的变量
-            image_decode    = base64.b64decode(request.image)
-            # 变成一个矩阵 单维向量
-            array           = np.frombuffer(image_decode, dtype=np.uint8)
-            # print("array shape:", array.shape)
-            # 再解码成图片 三维图片
-            image_bgr       = cv2.imdecode(array, cv2.IMREAD_COLOR)
-        except:
-            self.inference.logger.error("decode image fail!!!")
-            fake_image      = np.array([])
-            fake_image_64   = base64.b64encode(fake_image)
-            fake_detect_str = json.dumps({})
-            return object_detect_pb2.Response(image=fake_image_64, detect=fake_detect_str)
+        if check_is_url(request.image_url):
+            #                                                               10秒等待
+            image = Image.open(requests.get(request.image_url, stream=True, timeout=10).raw)
+        else:
+            image = Image.open(request.image_url) # 本地图片
 
         #=====================预测图片=====================#
-        image_rgb                = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-        detect, image_bgr_detect = self.inference.single(image_rgb, only_get_boxes=False) # 推理返回结果和绘制的图片
+        image_array              = np.array(image)
+        detect, image_bgr_detect = self.inference.single(image_array, only_get_boxes=False) # 推理返回结果和绘制的图片
 
         #================保存图片和检测结果=================#
         if SAVE:
             file_name = str(time.time())
-            cv2.imwrite(os.path.join(SERVER_SAVE_PATH, file_name + ".jpg"), image_bgr)
+            image.save(os.path.join(SERVER_SAVE_PATH, file_name + ".jpg"))
             # 保存检测结果
             json2xml(detect, SERVER_SAVE_PATH, file_name)
 

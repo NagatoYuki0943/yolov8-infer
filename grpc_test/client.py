@@ -17,13 +17,8 @@ os.makedirs(CLIENT_SAVE_PATH, exist_ok=True)
 def run():
     """发送request,接收response
     """
-    #=====================编码图片=====================#
-    image         = cv2.imread("../images/bus.jpg")
-    # 返回True和编码,这里只要编码
-    image_encode  = cv2.imencode('.jpg', image)[1]
-    # image_bytes = image_encode.tobytes()
-    # image_64    = base64.b64encode(image_bytes)
-    image_64      = base64.b64encode(image_encode)
+    image_url = "../images/bus.jpg"
+    # image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
 
     # 本次不使用SSL，所以channel是不安全的
     with grpc.insecure_channel(SERVER_HOST) as channel:
@@ -32,8 +27,8 @@ def run():
 
         #=================发送并接收新图片==================#
         # v8_detect是proto中service YoloDetect中的rpc v8_detect
-        #                                                  image是Request中设定的变量
-        response = stub.v8_detect(object_detect_pb2.Request(image=image_64))
+        #                                                   image_url是Request中设定的变量
+        response = stub.v8_detect(object_detect_pb2.Request(image_url=image_url))
 
     # 解码检测结果                      detect是Response中设定的变量
     detect       = json.loads(response.detect)

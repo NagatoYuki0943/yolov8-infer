@@ -10,7 +10,7 @@ service YoloDetect {
 
 //数据类型，其实我只要一个就可以了
 message Request {
-    string image = 1;
+    string image_url = 1;
 }
 
 message Response {
