@@ -1,5 +1,12 @@
 numpy
+
+pillow
 opencv-python
+
+requests
+
+PyYAML
+
 coloredlogs
 
 # onnxruntime   # CPU
