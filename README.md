@@ -10,7 +10,9 @@ https://github.com/dacquaviva/yolov5-openvino-cpp-python
 
 1. 需要权重，如onnx，tensorrt，openvino等
 
-2. 需要配置文件，如下格式
+2. 需要`yaml`配置文件，如下格式
+
+   使用方式为`"yaml_path": "./weights/yolov8.yaml"`
 
    必须要有 `size` 和 `names`
 
