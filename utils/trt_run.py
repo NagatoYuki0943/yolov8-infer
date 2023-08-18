@@ -53,28 +53,37 @@ class TensorRTInfer(Inference):
         self.allocations = []   # 分配显存空间
         for i in range(self.engine.num_bindings):
             is_input = False
+
             if trt.__version__ < "8.5":
                 if self.engine.binding_is_input(i):
                     is_input = True
                 name = self.engine.get_binding_name(i)
                 dtype = np.dtype(trt.nptype(self.engine.get_binding_dtype(i)))
                 shape = self.context.get_binding_shape(i)
+                if shape[0] < 0:
+                    assert self.engine.num_optimization_profiles > 0
+                    profile_shape = self.engine.get_profile_shape(0, name)
+                    assert len(profile_shape) == 3  # min,opt,max
+                    # Set the *max* profile as binding shape
+                    self.context.set_binding_shape(i, profile_shape[2])
+                    shape = self.context.get_binding_shape(i)
             else:
                 name = self.engine.get_tensor_name(i)
                 if self.engine.get_tensor_mode(name) == trt.TensorIOMode.INPUT:
                     is_input = True
                 dtype = np.dtype(trt.nptype(self.engine.get_tensor_dtype(name)))
                 shape = self.engine.get_tensor_shape(name)
+                if shape[0] < 0:
+                    assert self.engine.num_optimization_profiles > 0
+                    profile_shape = self.engine.get_tensor_profile_shape(name, 0)
+                    assert len(profile_shape) == 3  # min,opt,max
+                    # Set the *max* profile as binding shape
+                    self.context.set_input_shape(name, profile_shape[2])
+                    shape = self.context.get_tensor_shape(name)
 
-            if is_input and shape[0] < 0:
-                assert self.engine.num_optimization_profiles > 0
-                profile_shape = self.engine.get_profile_shape(0, name)
-                assert len(profile_shape) == 3  # min,opt,max
-                # Set the *max* profile as binding shape
-                self.context.set_binding_shape(i, profile_shape[2])
-                shape = self.context.get_binding_shape(i)
             if is_input:
                 self.batch_size = shape[0]
+
             size = dtype.itemsize
             for s in shape:
                 size *= s
