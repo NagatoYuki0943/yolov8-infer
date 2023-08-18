@@ -60,7 +60,7 @@ class TensorRTInfer(Inference):
                 name = self.engine.get_binding_name(i)
                 dtype = np.dtype(trt.nptype(self.engine.get_binding_dtype(i)))
                 shape = self.context.get_binding_shape(i)
-                if shape[0] < 0:
+                if shape[0] < 0 and is_input:
                     assert self.engine.num_optimization_profiles > 0
                     profile_shape = self.engine.get_profile_shape(0, name)
                     assert len(profile_shape) == 3  # min,opt,max
@@ -72,12 +72,12 @@ class TensorRTInfer(Inference):
                 if self.engine.get_tensor_mode(name) == trt.TensorIOMode.INPUT:
                     is_input = True
                 dtype = np.dtype(trt.nptype(self.engine.get_tensor_dtype(name)))
-                shape = self.engine.get_tensor_shape(name)
-                if shape[0] < 0:
+                shape = self.context.get_tensor_shape(name)
+                if shape[0] < 0 and is_input:
                     assert self.engine.num_optimization_profiles > 0
                     profile_shape = self.engine.get_tensor_profile_shape(name, 0)
                     assert len(profile_shape) == 3  # min,opt,max
-                    # Set the *max* profile as binding shape
+                    # Set the *max* profile as tensor shape
                     self.context.set_input_shape(name, profile_shape[2])
                     shape = self.context.get_tensor_shape(name)
 
