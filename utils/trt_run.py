@@ -58,7 +58,7 @@ class TensorRTInfer(Inference):
                 if self.engine.binding_is_input(i):
                     is_input = True
                 name = self.engine.get_binding_name(i)
-                dtype = np.dtype(trt.nptype(self.engine.get_binding_dtype(i)))
+                dtype = self.engine.get_binding_dtype(i)
                 shape = self.context.get_binding_shape(i)
                 if shape[0] < 0 and is_input:
                     assert self.engine.num_optimization_profiles > 0
@@ -71,7 +71,7 @@ class TensorRTInfer(Inference):
                 name = self.engine.get_tensor_name(i)
                 if self.engine.get_tensor_mode(name) == trt.TensorIOMode.INPUT:
                     is_input = True
-                dtype = np.dtype(trt.nptype(self.engine.get_tensor_dtype(name)))
+                dtype = self.engine.get_tensor_dtype(name)
                 shape = self.context.get_tensor_shape(name)
                 if shape[0] < 0 and is_input:
                     assert self.engine.num_optimization_profiles > 0
@@ -84,6 +84,7 @@ class TensorRTInfer(Inference):
             if is_input:
                 self.batch_size = shape[0]
 
+            dtype = np.dtype(trt.nptype(dtype))
             size = dtype.itemsize
             for s in shape:
                 size *= s
