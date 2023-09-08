@@ -42,7 +42,7 @@ class Server(object_detect_pb2_grpc.YoloDetectServicer):
 
         #=====================预测图片=====================#
         image_array              = np.array(image)
-        detect, image_bgr_detect = self.inference.single(image_array, only_get_boxes=False) # 推理返回结果和绘制的图片
+        detect, image_bgr_detect = self.inference.single(image_array, only_get_results=False, ignore_overlap_box=False) # 推理返回结果和绘制的图片
 
         #================保存图片和检测结果=================#
         if SAVE:

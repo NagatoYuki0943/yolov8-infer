@@ -137,7 +137,7 @@ class Inference(ABC):
         return detections
 
 
-    def box_to_origin(self, detections_in: np.ndarray, ratio: float, shape: np.ndarray) -> np.ndarray:
+    def to_origin_size(self, detections_in: np.ndarray, ratio: float, origin_shape: np.ndarray) -> np.ndarray:
         """将检测结果的坐标还原到原图尺寸
 
         Args:
@@ -147,7 +147,7 @@ class Inference(ABC):
                         ...
                     ]
             ratio (float):      缩放比例
-            shape (np.ndarray): 原始形状 (h, w, c)
+            origin_shape (np.ndarray): 原始形状 (h, w, c)
 
         Returns:
             np.ndarray: same as detections
@@ -157,18 +157,18 @@ class Inference(ABC):
 
         detections = detections_in.copy()
         # 还原到原图尺寸
-        detections[..., 2:] /= ratio
+        detections[..., 2:6] /= ratio
 
         # 防止框超出图片边界, 前面判断为True/False,后面选择更改的列,不选择更改的列会将整行都改为0
         detections[detections[..., 2] < 0.0, 2] = 0.0
         detections[detections[..., 3] < 0.0, 3] = 0.0
-        detections[detections[..., 4] > shape[1], 4] = shape[1]
-        detections[detections[..., 5] > shape[0], 5] = shape[0]
+        detections[detections[..., 4] > origin_shape[1], 4] = origin_shape[1]
+        detections[detections[..., 5] > origin_shape[0], 5] = origin_shape[0]
 
         return detections
 
 
-    def figure_boxes(self, detections: np.ndarray, image: np.ndarray) -> np.ndarray:
+    def figure(self, detections: np.ndarray, image: np.ndarray) -> np.ndarray:
         """将框画到原图
 
         Args:
@@ -227,7 +227,7 @@ class Inference(ABC):
         return image
 
 
-    def get_boxes(self, detections: np.ndarray, shape: np.ndarray) -> dict:
+    def get_results(self, detections: np.ndarray, shape: np.ndarray) -> dict:
         """返回还原到原图的框
 
         Args:
@@ -274,14 +274,14 @@ class Inference(ABC):
     def single(
         self,
         image_rgb: np.ndarray,
-        only_get_boxes: bool = False,
+        only_get_results: bool = False,
         ignore_overlap_box: bool = False
     ) -> tuple[dict, np.ndarray] | tuple[dict, None]:
         """单张图片推理
 
         Args:
             image_rgb (np.ndarray):              rgb图片
-            only_get_boxes (bool, optional):     是否只获取boxes. Defaults to False.
+            only_get_results (bool, optional):     是否只获取boxes. Defaults to False.
             ignore_overlap_box (bool, optional): 是否忽略重叠的小框,不同于nms. Defaults to False.
 
         Returns:
@@ -304,20 +304,20 @@ class Inference(ABC):
         nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
         # 4. 将坐标还原到原图尺寸
-        detections = self.box_to_origin(nms_results[0], ratio, image_rgb.shape)
+        detections = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
         t4 = time.time()
 
         # 5. 画图或者获取json
         if ignore_overlap_box:  # 忽略重叠的小框,不同于nms
             detections = ignore_overlap_boxes(detections)
-        detect = self.get_boxes(detections, image_rgb.shape) # shape: (h, w, c)
-        if not only_get_boxes:
-            image = self.figure_boxes(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+        detect = self.get_results(detections, image_rgb.shape) # shape: (h, w, c)
+        if not only_get_results:
+            image = self.figure(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
         t5 = time.time()
         self.logger.info(f"transform time: {int((t2-t1) * 1000)} ms, infer time: {int((t3-t2) * 1000)} ms, nms time: {int((t4-t3) * 1000)} ms, figure time: {int((t5-t4) * 1000)} ms")
 
         # 6. 返回结果
-        if not only_get_boxes:
+        if not only_get_results:
             return detect, image
         else:
             return detect, None
@@ -372,13 +372,13 @@ class Inference(ABC):
             nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
             # 6. 将坐标还原到原图尺寸
-            detections = self.box_to_origin(nms_results[0], ratio, image_rgb.shape)
+            detections = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
             t4 = time.time()
 
             # 7. 画图
             if ignore_overlap_box: # 忽略重叠的小框,不同于nms
                 detections = ignore_overlap_boxes(detections)
-            image = self.figure_boxes(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+            image = self.figure(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
             t5 = time.time()
 
             # 8. 记录时间
