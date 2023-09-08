@@ -19,7 +19,7 @@ IMAGE_PATH = r"./images/bus.jpg"
 image_rgb  = get_image(IMAGE_PATH)
 
 # 单张图片推理
-result, image_bgr_detect = inference.single(image_rgb, only_get_results=False, ignore_overlap_box=False)
+result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)
 print(result)
 SAVE_PATH  = r"./trt_det.jpg"
 cv2.imwrite(SAVE_PATH, image_bgr_detect)
@@ -27,5 +27,5 @@ cv2.imwrite(SAVE_PATH, image_bgr_detect)
 # 多张图片推理
 IMAGE_DIR  = r"../datasets/coco128/images/train2017"
 SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
-# inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
+inference.multi(IMAGE_DIR, SAVE_DIR, save_xml=True) # save_xml 保存xml文件
 # avg transform time: 3.546875 ms, avg infer time: 7.7890625 ms, avg nms time: 0.65625 ms, avg figure time: 11.484375 ms

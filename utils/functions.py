@@ -157,11 +157,11 @@ def ignore_box2_or_not(box1: list, box2: list, ratio: float = 0.75) -> bool:
         return False
 
 
-def ignore_overlap_boxes(detections: np.ndarray) -> np.ndarray:
+def ignore_overlap_boxes(detection: np.ndarray) -> np.ndarray:
     """忽略一些框,根据同一个类别的框是否包含另一个框
 
     Args:
-        detections (np.ndarray): np.float32
+        detection (np.ndarray): np.float32
                 [
                     [class_index, confidences, xmin, ymin, xmax, ymax],
                     ...
@@ -174,19 +174,19 @@ def ignore_overlap_boxes(detections: np.ndarray) -> np.ndarray:
                 ]
     """
     # 只有1个框或者没有框就返回
-    if len(detections) <= 1:
-        return detections
+    if len(detection) <= 1:
+        return detection
 
-    new_detections = []
+    new_detection = []
 
     # 获取每个类别
-    classes = np.unique(detections[:, 0])
+    classes = np.unique(detection[:, 0])
     # 遍历单一类别
     for cls in classes:
-        dets_sig_cls = detections[detections[:, 0] == cls]
+        dets_sig_cls = detection[detection[:, 0] == cls]
         # 如果一个类别只有1个框,就直接保存
         if len(dets_sig_cls) == 1:
-            new_detections.append(dets_sig_cls)
+            new_detection.append(dets_sig_cls)
             continue
         # 求面积,根据面积排序,不是最好的办法
         h = dets_sig_cls[:, 5] - dets_sig_cls[:, 3]
@@ -224,10 +224,9 @@ def ignore_overlap_boxes(detections: np.ndarray) -> np.ndarray:
         # 最终保留的index,True/False
         # keeps.T: 转置之后每行代表是否要保留这个框
         final_keep = np.all(keeps.T, axis=-1)
-        new_detections.append(dets_sig_cls[final_keep])
+        new_detection.append(dets_sig_cls[final_keep])
 
-    # new_detections：[np.ndarray, np.ndarray...]
-    return np.concatenate(new_detections, axis=0)
+    return np.concatenate(new_detection, axis=0)
 
 
 def indent(elem, level=0):

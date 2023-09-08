@@ -137,7 +137,7 @@ class Inference(ABC):
         return detections
 
 
-    def to_origin_size(self, detections_in: np.ndarray, ratio: float, origin_shape: np.ndarray) -> np.ndarray:
+    def to_origin_size(self, detection_in: np.ndarray, ratio: float, origin_shape: np.ndarray) -> np.ndarray:
         """将检测结果的坐标还原到原图尺寸
 
         Args:
@@ -152,27 +152,27 @@ class Inference(ABC):
         Returns:
             np.ndarray: same as detections
         """
-        if len(detections_in) == 0:
-            return detections_in
+        if len(detection_in) == 0:
+            return detection_in
 
-        detections = detections_in.copy()
+        detection = detection_in.copy()
         # 还原到原图尺寸
-        detections[..., 2:6] /= ratio
+        detection[..., 2:6] /= ratio
 
         # 防止框超出图片边界, 前面判断为True/False,后面选择更改的列,不选择更改的列会将整行都改为0
-        detections[detections[..., 2] < 0.0, 2] = 0.0
-        detections[detections[..., 3] < 0.0, 3] = 0.0
-        detections[detections[..., 4] > origin_shape[1], 4] = origin_shape[1]
-        detections[detections[..., 5] > origin_shape[0], 5] = origin_shape[0]
+        detection[detection[..., 2] < 0.0, 2] = 0.0
+        detection[detection[..., 3] < 0.0, 3] = 0.0
+        detection[detection[..., 4] > origin_shape[1], 4] = origin_shape[1]
+        detection[detection[..., 5] > origin_shape[0], 5] = origin_shape[0]
 
-        return detections
+        return detection
 
 
-    def figure(self, detections: np.ndarray, image: np.ndarray) -> np.ndarray:
+    def figure(self, detection: np.ndarray, image: np.ndarray) -> np.ndarray:
         """将框画到原图
 
         Args:
-            detections (np.ndarray): np.float32
+            detection (np.ndarray): np.float32
                     [
                         [class_index, confidence, xmin, ymin, xmax, ymax],
                         ...
@@ -182,19 +182,19 @@ class Inference(ABC):
         Returns:
             np.ndarray: 绘制的图
         """
-        if len(detections) == 0:
+        if len(detection) == 0:
             self.logger.warning("no detection")
             # 返回原图
             return image
 
-        # Print results and save Figure with detections
-        for i, detection in enumerate(detections):
-            classId     = int(detection[0])
-            confidence  = detection[1]
-            xmin        = int(detection[2])
-            ymin        = int(detection[3])
-            xmax        = int(detection[4])
-            ymax        = int(detection[5])
+        # Print results and save Figure with detection
+        for i, detect in enumerate(detection):
+            classId     = int(detect[0])
+            confidence  = detect[1]
+            xmin        = int(detect[2])
+            ymin        = int(detect[3])
+            xmax        = int(detect[4])
+            ymax        = int(detect[5])
             self.logger.info(f"Bbox {i} Class: {classId}, Confidence: {'{:.2f}'.format(confidence)}, coords: [ xmin: {xmin}, ymin: {ymin}, xmax: {xmax}, ymax: {ymax} ]")
 
             # 绘制框
@@ -227,11 +227,11 @@ class Inference(ABC):
         return image
 
 
-    def get_results(self, detections: np.ndarray, shape: np.ndarray) -> dict:
+    def get_result(self, detection: np.ndarray, shape: np.ndarray) -> dict:
         """返回还原到原图的框
 
         Args:
-            detections (np.ndarray): np.float32
+            detection (np.ndarray): np.float32
                     [
                         [class_index, confidence, xmin, ymin, xmax, ymax],
                         ...
@@ -246,42 +246,42 @@ class Inference(ABC):
                     "image_size": [height, width, channel]
                 }
         """
-        if len(detections) == 0:
+        if len(detection) == 0:
             self.logger.warning("no detection")
             return {"detect": [], "num": {}, "image_size": shape}
 
-        detect = {} # 结果返回一个dict
+        result = {} # 结果返回一个dict
         count = []  # 类别计数
         res = []
-        for i, detection in enumerate(detections):
-            count.append(int(detection[0]))   # 计数
+        for i, detect in enumerate(detection):
+            count.append(int(detect[0]))   # 计数
             box = [None] * 4
-            box[0] = int(detection[2])    # xmin
-            box[1] = int(detection[3])    # ymin
-            box[2] = int(detection[4])    # xmax
-            box[3] = int(detection[5])    # ymax
-            res.append({"class_index": int(detection[0]), "class": self.config["names"][int(detection[0])], "confidence": detection[1], "box": box})
-            self.logger.info(f"Bbox {i} Class: {int(detection[0])}, Confidence: {'{:.2f}'.format(detection[1])}, coords: [ xmin: {box[0]}, ymin: {box[1]}, xmax: {box[2]}, ymax: {box[3]} ]")
+            box[0] = int(detect[2])    # xmin
+            box[1] = int(detect[3])    # ymin
+            box[2] = int(detect[4])    # xmax
+            box[3] = int(detect[5])    # ymax
+            res.append({"class_index": int(detect[0]), "class": self.config["names"][int(detect[0])], "confidence": detect[1], "box": box})
+            self.logger.info(f"Bbox {i} Class: {int(detect[0])}, Confidence: {'{:.2f}'.format(detect[1])}, coords: [ xmin: {box[0]}, ymin: {box[1]}, xmax: {box[2]}, ymax: {box[3]} ]")
 
-        detect["detect"] = res
+        result["detect"] = res
         # 类别计数
-        detect["count"] = dict(Counter(count))
+        result["count"] = dict(Counter(count))
         # 图片形状
-        detect["image_size"] = shape # 添加 (h, w, c)
-        return detect
+        result["image_size"] = shape # 添加 (h, w, c)
+        return result
 
 
     def single(
         self,
         image_rgb: np.ndarray,
-        only_get_results: bool = False,
+        only_get_result: bool = False,
         ignore_overlap_box: bool = False
     ) -> tuple[dict, np.ndarray] | tuple[dict, None]:
         """单张图片推理
 
         Args:
             image_rgb (np.ndarray):              rgb图片
-            only_get_results (bool, optional):     是否只获取boxes. Defaults to False.
+            only_get_result (bool, optional):    是否只获取boxes. Defaults to False.
             ignore_overlap_box (bool, optional): 是否忽略重叠的小框,不同于nms. Defaults to False.
 
         Returns:
@@ -304,23 +304,23 @@ class Inference(ABC):
         nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
         # 4. 将坐标还原到原图尺寸
-        detections = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
+        detection = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
         t4 = time.time()
 
         # 5. 画图或者获取json
         if ignore_overlap_box:  # 忽略重叠的小框,不同于nms
-            detections = ignore_overlap_boxes(detections)
-        detect = self.get_results(detections, image_rgb.shape) # shape: (h, w, c)
-        if not only_get_results:
-            image = self.figure(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+            detection = ignore_overlap_boxes(detection)
+        result = self.get_result(detection, image_rgb.shape) # shape: (h, w, c)
+        if not only_get_result:
+            image = self.figure(detection, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
         t5 = time.time()
         self.logger.info(f"transform time: {int((t2-t1) * 1000)} ms, infer time: {int((t3-t2) * 1000)} ms, nms time: {int((t4-t3) * 1000)} ms, figure time: {int((t5-t4) * 1000)} ms")
 
         # 6. 返回结果
-        if not only_get_results:
-            return detect, image
+        if not only_get_result:
+            return result, image
         else:
-            return detect, None
+            return result, None
 
 
     def multi(
@@ -372,13 +372,13 @@ class Inference(ABC):
             nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
             # 6. 将坐标还原到原图尺寸
-            detections = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
+            detection = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
             t4 = time.time()
 
             # 7. 画图
             if ignore_overlap_box: # 忽略重叠的小框,不同于nms
-                detections = ignore_overlap_boxes(detections)
-            image = self.figure(detections, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+                detection = ignore_overlap_boxes(detection)
+            image = self.figure(detection, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
             t5 = time.time()
 
             # 8. 记录时间
@@ -396,6 +396,6 @@ class Inference(ABC):
             cv2.imwrite(str(save_path / image_file), image)
             # 10.保存xml
             if save_xml:
-                array2xml(detections, image_rgb.shape, self.config["names"], save_dir, "".join(image_file.split(".")[:-1]))
+                array2xml(detection, image_rgb.shape, self.config["names"], save_dir, "".join(image_file.split(".")[:-1]))
 
         self.logger.info(f"avg transform time: {trans_times / len(image_paths)} ms, avg infer time: {infer_times / len(image_paths)} ms, avg nms time: {nms_times / len(image_paths)} ms, avg figure time: {figure_times / len(image_paths)} ms")

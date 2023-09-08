@@ -18,7 +18,7 @@ IMAGE_PATH = r"./images/bus.jpg"
 image_rgb  = get_image(IMAGE_PATH)
 
 # 单张图片推理
-result, image_bgr_detect = inference.single(image_rgb, only_get_results=False, ignore_overlap_box=False)
+result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)
 print(result)
 SAVE_PATH  = r"./opencv_det.jpg"
 cv2.imwrite(SAVE_PATH, image_bgr_detect)
