@@ -201,7 +201,7 @@ def ignore_overlap_boxes(detections: np.ndarray) -> np.ndarray:
             # 默认都不包含
             keep = [False] * len(dets_sig_cls)
             for min_i in index[i+1:]:
-                isin = ignore_box2_or_not(dets_sig_cls[max_i, 2:], dets_sig_cls[min_i, 2:])
+                isin = ignore_box2_or_not(dets_sig_cls[max_i, 2:6], dets_sig_cls[min_i, 2:6])
                 keep[min_i] = isin
             keeps.append(keep)
         # 取反,原本False为不包含,True为包含,取反后False为不保留,True为保留

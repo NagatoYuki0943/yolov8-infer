@@ -19,12 +19,12 @@ class Inference(ABC):
         """父类推理器
 
         Args:
-            yaml_path (str):                配置文件路径
-            confidence_threshold (float):   只有得分大于置信度的预测框会被保留下来,越大越严格
-            score_threshold (float):        opencv nms分类得分阈值,越大越严格
-            nms_threshold (float):          非极大抑制所用到的nms_iou大小,越小越严格
-            openvino_preprocess (bool, optional): openvino图片预处理，只有openvino模型可用. Defaults to False.
-            fp16 (bool, optional):          半精度推理. Defaults to False.
+            yaml_path (str):                        配置文件路径
+            confidence_threshold (float):           只有得分大于置信度的预测框会被保留下来,越大越严格
+            score_threshold (float):                opencv nms分类得分阈值,越大越严格
+            nms_threshold (float):                  非极大抑制所用到的nms_iou大小,越小越严格
+            openvino_preprocess (bool, optional):   openvino图片预处理，只有openvino模型可用. Defaults to False.
+            fp16 (bool, optional):                  半精度推理. Defaults to False.
         """
         self.config               = load_yaml(yaml_path)
         self.confidence_threshold = confidence_threshold
@@ -71,8 +71,10 @@ class Inference(ABC):
         Returns:
             (list[np.ndarray]): list代表每张图片,里面是一个ndarray,代表一张图片的结果,如果图片没有结果就为 []
                 [
-                    [[class_index, confidence, xmin, ymin, xmax, ymax],
-                    ..]
+                    np.ndarray([
+                        [class_index, confidence, xmin, ymin, xmax, ymax],
+                        ...
+                    ]),
                 ]
         """
         detections = []
@@ -117,10 +119,12 @@ class Inference(ABC):
                 # 过滤
                 detection.append(
                     np.concatenate(
-                        (np.expand_dims(class_indexes_[nms_indexes], -1),
-                        np.expand_dims(confidences_[nms_indexes], -1),
-                        boxes_[nms_indexes]),
-                        axis=-1
+                        (
+                            np.expand_dims(class_indexes_[nms_indexes], -1),
+                            np.expand_dims(confidences_[nms_indexes], -1),
+                            boxes_[nms_indexes],
+                        ),
+                        axis=-1,
                     )
                 )
 
@@ -209,15 +213,16 @@ class Inference(ABC):
             image = cv2.addWeighted(image, 1.0, temp_image, 1.0, 1)
 
             # 添加文字
-            image = cv2.putText(img         = image,
-                                text        = label,
-                                org         = (xmin, ymin - 5 if ymin > 20 else ymin + h + 5),
-                                fontFace    = 0,
-                                fontScale   = 0.5,
-                                color       = (0, 0, 0),
-                                thickness   = 1,
-                                lineType    = cv2.LINE_AA,
-                                )
+            image = cv2.putText(
+                img       = image,
+                text      = label,
+                org       = (xmin, ymin - 5 if ymin > 20 else ymin + h + 5),
+                fontFace  = 0,
+                fontScale = 0.5,
+                color     = (0, 0, 0),
+                thickness = 1,
+                lineType  = cv2.LINE_AA,
+            )
 
         return image
 
@@ -234,11 +239,12 @@ class Inference(ABC):
             shape (np.ndarray): (h, w, c)
 
         Returns:
-            detect (dict):  {
-                            "detect":     [{"class_index": class_index, "class": "class_name", "confidence": confidence, "box": [xmin, ymin, xmax, ymax]}...],    box为int类型
-                            "num":        {0: 4, 5: 1},
-                            "image_size": [height, width, channel]
-                            }
+            detect (dict):
+                {
+                    "detect":     [{"class_index": class_index, "class": "class_name", "confidence": confidence, "box": [xmin, ymin, xmax, ymax]}...],    box为int类型
+                    "num":        {0: 4, 5: 1},
+                    "image_size": [height, width, channel]
+                }
         """
         if len(detections) == 0:
             self.logger.warning("no detection")
@@ -291,14 +297,14 @@ class Inference(ABC):
         t2 = time.time()
         # numpy float16 速度慢 https://stackoverflow.com/questions/56697332/float16-is-much-slower-than-float32-and-float64-in-numpy
         # 传递参数时转变类型比传递后再转换要快
-        boxes = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
+        results = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
 
         # 3. NMS
         t3 = time.time()
-        detections = self.nms(boxes.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
+        nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
         # 4. 将坐标还原到原图尺寸
-        detections = self.box_to_origin(detections[0], ratio, image_rgb.shape)
+        detections = self.box_to_origin(nms_results[0], ratio, image_rgb.shape)
         t4 = time.time()
 
         # 5. 画图或者获取json
@@ -359,14 +365,14 @@ class Inference(ABC):
 
             # 4. 推理
             t2 = time.time()
-            boxes = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
+            results = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
 
             # 5. NMS
             t3 = time.time()
-            detections = self.nms(boxes.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
+            nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
 
             # 6. 将坐标还原到原图尺寸
-            detections = self.box_to_origin(detections[0], ratio, image_rgb.shape)
+            detections = self.box_to_origin(nms_results[0], ratio, image_rgb.shape)
             t4 = time.time()
 
             # 7. 画图
