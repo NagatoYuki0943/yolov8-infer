@@ -137,20 +137,20 @@ class Inference(ABC):
         return detections
 
 
-    def to_origin_size(self, detection_in: np.ndarray, ratio: float, origin_shape: np.ndarray) -> np.ndarray:
-        """将检测结果的坐标还原到原图尺寸
+    def to_origin_size(self, detection_in: np.ndarray, ratio: float, origin_shape: list[int]) -> np.ndarray:
+        """将将检测结果的坐标还原到原图尺寸
 
         Args:
-            detections_in (np.ndarray): np.float32
+            detection_in (np.ndarray): [n, 6]
                     [
                         [class_index, confidence, xmin, ymin, xmax, ymax],
                         ...
                     ]
-            ratio (float):      缩放比例
-            origin_shape (np.ndarray): 原始形状 (h, w, c)
+            ratio (float): 缩放比例
+            origin_shape (list[int]): 原始形状 [h, w]
 
         Returns:
-            np.ndarray: same as detections
+            np.ndarray: same as detection_in
         """
         if len(detection_in) == 0:
             return detection_in
@@ -172,7 +172,7 @@ class Inference(ABC):
         """将框画到原图
 
         Args:
-            detection (np.ndarray): np.float32
+            detection (np.ndarray): [n, 6]
                     [
                         [class_index, confidence, xmin, ymin, xmax, ymax],
                         ...
@@ -227,16 +227,16 @@ class Inference(ABC):
         return image
 
 
-    def get_result(self, detection: np.ndarray, shape: np.ndarray) -> dict:
+    def get_result(self, detection: np.ndarray, origin_shape: np.ndarray) -> dict:
         """返回还原到原图的框
 
         Args:
-            detection (np.ndarray): np.float32
+            detection (np.ndarray): [n, 6]
                     [
                         [class_index, confidence, xmin, ymin, xmax, ymax],
                         ...
                     ]
-            shape (np.ndarray): (h, w, c)
+            origin_shape (np.ndarray): [h, w, c]
 
         Returns:
             detect (dict):
@@ -248,7 +248,7 @@ class Inference(ABC):
         """
         if len(detection) == 0:
             self.logger.warning("no detection")
-            return {"detect": [], "num": {}, "image_size": shape}
+            return {"detect": [], "num": {}, "image_size": origin_shape}
 
         result = {} # 结果返回一个dict
         count = []  # 类别计数
@@ -267,7 +267,7 @@ class Inference(ABC):
         # 类别计数
         result["count"] = dict(Counter(count))
         # 图片形状
-        result["image_size"] = shape # 添加 (h, w, c)
+        result["image_size"] = origin_shape # 添加 [h, w, c]
         return result
 
 
@@ -301,16 +301,16 @@ class Inference(ABC):
 
         # 3. NMS
         t3 = time.time()
-        nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
+        nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] -> [[[class_index, confidence, xmin, ymin, xmax, ymax],]]
 
         # 4. 将坐标还原到原图尺寸
-        detection = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
+        detection = self.to_origin_size(nms_results[0], ratio, image_rgb.shape[:2])
         t4 = time.time()
 
         # 5. 画图或者获取json
         if ignore_overlap_box:  # 忽略重叠的小框,不同于nms
             detection = ignore_overlap_boxes(detection)
-        result = self.get_result(detection, image_rgb.shape) # shape: (h, w, c)
+        result = self.get_result(detection, image_rgb.shape)
         if not only_get_result:
             image = self.figure(detection, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
         t5 = time.time()
@@ -369,10 +369,10 @@ class Inference(ABC):
 
             # 5. NMS
             t3 = time.time()
-            nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidences, xmin, ymin, xmax, ymax],]]
+            nms_results = self.nms(results.transpose(0, 2, 1)) # [1, 84, 8400] -> [1, 8400, 84] ->  -> [[[class_index, confidence, xmin, ymin, xmax, ymax],]]
 
             # 6. 将坐标还原到原图尺寸
-            detection = self.to_origin_size(nms_results[0], ratio, image_rgb.shape)
+            detection = self.to_origin_size(nms_results[0], ratio, image_rgb.shape[:2])
             t4 = time.time()
 
             # 7. 画图

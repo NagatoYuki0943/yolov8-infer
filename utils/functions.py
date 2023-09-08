@@ -163,13 +163,13 @@ def ignore_overlap_boxes(detection: np.ndarray) -> np.ndarray:
     Args:
         detection (np.ndarray): np.float32
                 [
-                    [class_index, confidences, xmin, ymin, xmax, ymax],
+                    [class_index, confidence, xmin, ymin, xmax, ymax],
                     ...
                 ]
 
     Returns:
                 [
-                    [class_index, confidences, xmin, ymin, xmax, ymax],
+                    [class_index, confidence, xmin, ymin, xmax, ymax],
                     ...
                 ]
     """
@@ -293,7 +293,7 @@ def array2xml(data: np.ndarray, shape: tuple[int], names: list[str], path: str, 
     Args:
         data (np.ndarray):  array数据
                 [
-                    [class_index, confidences, xmin, ymin, xmax, ymax],
+                    [class_index, confidence, xmin, ymin, xmax, ymax],
                     ...
                 ]
         shape (tuple[int]): 原图shape. (h, w, c)
