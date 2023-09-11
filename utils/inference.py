@@ -13,7 +13,7 @@ class Inference(ABC):
         yaml_path: str,
         confidence_threshold: float = 0.25,
         score_threshold:      float = 0.2,
-        nms_threshold:        float = 0.45,
+        nms_threshold:        float = 0.6,
         openvino_preprocess:   bool = False,
     ) -> None:
         """父类推理器
