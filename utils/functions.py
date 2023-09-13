@@ -26,16 +26,16 @@ def load_yaml(yaml_path: str) -> dict:
     return y
 
 
-def get_image(image_path: str) -> np.ndarray:
+def read_image(image_path: str) -> np.ndarray:
     """获取图像
 
     Args:
         image_path (str): 图片路径
 
     Returns:
-        Tuple: 原图
+        np.ndarray: RGB图片
     """
-    image_bgr = cv2.imread(str(Path(image_path)))
+    image_bgr = cv2.imread(image_path)
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)  # BGR2RGB
     return image_rgb
 

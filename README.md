@@ -116,7 +116,7 @@ names:
 > [NVIDIA - CUDA | onnxruntime](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)
 
 ```python
-from utils import get_image, OrtInference
+from utils import read_image, OrtInference
 import cv2
 
 
@@ -134,7 +134,7 @@ inference  = OrtInference(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
-image_rgb  = get_image(IMAGE_PATH)
+image_rgb  = read_image(IMAGE_PATH)
 
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)
@@ -153,7 +153,7 @@ SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
 > 安装openvino方法请看 [openvino安装](#openvino安装)
 
 ```python
-from utils import get_image, OVInference
+from utils import read_image, OVInference
 import cv2
 
 
@@ -172,7 +172,7 @@ inference  = OVInference(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
-image_rgb  = get_image(IMAGE_PATH)
+image_rgb  = read_image(IMAGE_PATH)
 
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)
@@ -193,7 +193,7 @@ SAVE_DIR   = r"../datasets/coco128/images/train2017_res"
 > 注意yolov8导出的engine会在engine文件开始添加metadata，trtexec导出的模型不会添加，因此注意engine模型和`trtexec`参数
 
 ```python
-from utils import get_image, TensorRTInfer
+from utils import read_image, TensorRTInfer
 import cv2
 
 
@@ -211,7 +211,7 @@ inference  = TensorRTInfer(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
-image_rgb  = get_image(IMAGE_PATH)
+image_rgb  = read_image(IMAGE_PATH)
 
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)
@@ -252,7 +252,7 @@ export LD_LIBRARY_PATH=/home/TensorRT/lib:$LD_LIBRARY_PATH
 # OpenCV推理例子
 
 ```python
-from utils import get_image, OpenCVInference
+from utils import read_image, OpenCVInference
 import cv2
 
 
@@ -269,7 +269,7 @@ inference  = OpenCVInference(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
-image_rgb  = get_image(IMAGE_PATH)
+image_rgb  = read_image(IMAGE_PATH)
 
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)

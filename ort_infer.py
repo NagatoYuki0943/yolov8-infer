@@ -1,4 +1,4 @@
-from utils import get_image, OrtInference
+from utils import read_image, OrtInference
 import cv2
 
 
@@ -16,7 +16,7 @@ inference  = OrtInference(**config)
 
 # 读取图片
 IMAGE_PATH = r"./images/bus.jpg"
-image_rgb  = get_image(IMAGE_PATH)
+image_rgb  = read_image(IMAGE_PATH)
 
 # 单张图片推理
 result, image_bgr_detect = inference.single(image_rgb, only_get_result=False, ignore_overlap_box=False)

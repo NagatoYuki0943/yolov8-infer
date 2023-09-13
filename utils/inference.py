@@ -359,7 +359,7 @@ class Inference(ABC):
 
             # 3. 获取图片,缩放的图片,扩展的宽高
             t1 = time.time()
-            image_rgb = get_image(image_path)
+            image_rgb = read_image(image_path)
             image_reized, ratio = resize_and_pad(image_rgb, self.config["imgsz"])
             input_array = transform(image_reized, self.openvino_preprocess)
 

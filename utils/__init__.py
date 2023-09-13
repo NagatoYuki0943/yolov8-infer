@@ -1,5 +1,5 @@
 from .functions import (
-    load_yaml, get_image, resize_and_pad, transform,
+    load_yaml, read_image, resize_and_pad, transform,
     mulit_colors, check_onnx, ignore_overlap_boxes,
     array2xml, json2xml, cxcywh2xyxy, xyxy2cxcywh
 )
