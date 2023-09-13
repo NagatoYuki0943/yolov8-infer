@@ -199,18 +199,13 @@ class Inference(ABC):
 
             # 绘制框
             image = cv2.rectangle(image, (xmin, ymin), (xmax, ymax), self.colors[classId], 2)
-            # 直接在原图上绘制文字背景，不透明
-            # image = cv2.rectangle(image, (xmin, ymin - 20), (xmax, ymax)), self.colors[classId], cv2.FILLED)
 
             # 文字
             label = str(self.config["names"][classId]) + " " + "{:.2f}".format(confidence)
             w, h = cv2.getTextSize(label, 0, fontScale=0.5, thickness=1)[0]  # text width, height
 
             # 添加文字背景
-            temp_image = np.zeros(image.shape).astype(np.uint8)
-            temp_image = cv2.rectangle(temp_image, (xmin, ymin - 20 if ymin > 20 else ymin + h + 10), (xmax, ymin), self.colors[classId], cv2.FILLED)
-            # 叠加原图和文字背景，文字背景是透明的
-            image = cv2.addWeighted(image, 1.0, temp_image, 1.0, 1)
+            image = cv2.rectangle(image, (xmin, ymin - 20 if ymin > 20 else ymin + h + 10), (xmin + w, ymin), self.colors[classId], cv2.FILLED)
 
             # 添加文字
             image = cv2.putText(
