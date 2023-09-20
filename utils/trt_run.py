@@ -89,6 +89,7 @@ class TensorRTInfer(Inference):
             for s in shape:
                 size *= s
             allocation = cuda.mem_alloc(size)                               # 分配显存
+            self.context.set_tensor_address(name, allocation)               # execute_async_v3 需要绑定tensor的name和address
             host_allocation = None if is_input else np.zeros(shape, dtype)  # 分配内存
             binding = {
                 "index": i,
@@ -151,7 +152,8 @@ class TensorRTInfer(Inference):
         """
         # 将内存中的图片移动到显存上                             将图片内存变得连续
         cuda.memcpy_htod_async(self.inputs[0]['allocation'], np.ascontiguousarray(images), self.stream)
-        self.context.execute_async_v2(bindings=self.allocations, stream_handle=self.stream.handle)  # infer
+        # self.context.execute_async_v2(bindings=self.allocations, stream_handle=self.stream.handle)# infer
+        self.context.execute_async_v3(stream_handle=self.stream.handle)                             # infer
         for o in range(len(self.outputs)):                                                          # 将显存中的结果移动到内存上
             cuda.memcpy_dtoh_async(self.outputs[o]['host_allocation'], self.outputs[o]['allocation'], self.stream)
 
