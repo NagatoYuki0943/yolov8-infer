@@ -20,8 +20,8 @@ def remap(data: dict, remap_dict: dict) -> dict:
         # 映射id
         box["class_index"] = remap_dict[box["class_index"]]
 
-        # 忽略new_id小于0的类别
-        if box["class_index"] < 0:
+        # 忽略new_id为0的类别,这个类别不要
+        if box["class_index"] == 0:
             # 不能直接remove,会导致训练数据长度变化,后面一个的数据读取不到
             continue
 
