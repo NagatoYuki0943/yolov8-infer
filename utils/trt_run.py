@@ -25,10 +25,9 @@ class TensorRTInfer(Inference):
     Implements inference for the EfficientDet TensorRT engine.
     """
 
-    def __init__(self, model_path: str, trtexec=False, **kwargs):
+    def __init__(self, model_path: str, **kwargs):
         """
         :param model_path (str): The path to the serialized engine to load from disk.
-        :param trtexec (bool):   是否使用trtexec手动导出的engine模型,yolov8的导出会在开始添加metadata,trtexec不会添加
         """
         super().__init__(**kwargs)
 
@@ -37,13 +36,22 @@ class TensorRTInfer(Inference):
         # Load TRT engine
         self.trtlogger = trt.Logger(trt.Logger.ERROR)
         trt.init_libnvinfer_plugins(self.trtlogger, namespace="")
-        with open(model_path, "rb") as f, trt.Runtime(self.trtlogger) as runtime:
-            assert runtime
-            if not trtexec:
+
+        try:
+            # ultralytics export
+            with open(model_path, "rb") as f, trt.Runtime(self.trtlogger) as runtime:
+                assert runtime
                 meta_len = int.from_bytes(f.read(4), byteorder='little')  # read metadata length  yolov8 different from yolov5 in two lines https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py#L162
                 metadata = json.loads(f.read(meta_len).decode('utf-8'))   # read metadata
-            self.engine = runtime.deserialize_cuda_engine(f.read())   # read engine
-        assert self.engine
+                self.engine = runtime.deserialize_cuda_engine(f.read())   # read engine
+                assert self.engine
+        except:
+            # trtexec
+            with open(model_path, "rb") as f, trt.Runtime(self.trtlogger) as runtime:
+                assert runtime
+                self.engine = runtime.deserialize_cuda_engine(f.read())   # read engine
+                assert self.engine
+
         self.context = self.engine.create_execution_context()
         assert self.context
 
