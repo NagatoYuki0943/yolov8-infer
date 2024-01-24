@@ -1,4 +1,5 @@
 from collections import Counter
+from copy import deepcopy
 import re
 
 
@@ -12,9 +13,11 @@ def remap(data: dict, remap_dict: dict) -> dict:
     Returns:
         dict:              remap的数据
     """
+    data_c = deepcopy(data)
+
     new_count = []
     new_box   = []
-    for box in data["detect"]:
+    for box in data_c["detect"]:
         # 去除名字
         box.pop("class")
         # 映射id
@@ -29,10 +32,10 @@ def remap(data: dict, remap_dict: dict) -> dict:
         new_count.append(box["class_index"])
 
     # reamp id 计数
-    data["detect"] = new_box
-    data["count"] = dict(Counter(new_count))
+    data_c["detect"] = new_box
+    data_c["count"] = dict(Counter(new_count))
 
-    return data
+    return data_c
 
 
 def reformat(data: dict) -> dict:
