@@ -195,13 +195,13 @@ class Inference(ABC):
             ymin        = int(detect[3])
             xmax        = int(detect[4])
             ymax        = int(detect[5])
-            self.logger.info(f"Bbox {i} Class: {classId}, Confidence: {'{:.2f}'.format(confidence)}, coords: [ xmin: {xmin}, ymin: {ymin}, xmax: {xmax}, ymax: {ymax} ]")
+            self.logger.info(f"Bbox {i} Class: {classId}, Confidence: {confidence:.2f}, coords: [ xmin: {xmin}, ymin: {ymin}, xmax: {xmax}, ymax: {ymax} ]")
 
             # 绘制框
             image = cv2.rectangle(image, (xmin, ymin), (xmax, ymax), self.colors[classId], 2)
 
             # 文字
-            label = str(self.config["names"][classId]) + " " + "{:.2f}".format(confidence)
+            label = f"{str(self.config['names'][classId])} {confidence:.2f}"
             w, h = cv2.getTextSize(label, 0, fontScale=0.5, thickness=1)[0]  # text width, height
 
             # 添加文字背景
@@ -256,7 +256,7 @@ class Inference(ABC):
             box[2] = int(detect[4])    # xmax
             box[3] = int(detect[5])    # ymax
             res.append({"class_index": int(detect[0]), "class": self.config["names"][int(detect[0])], "confidence": detect[1], "box": box})
-            self.logger.info(f"Bbox {i} Class: {int(detect[0])}, Confidence: {'{:.2f}'.format(detect[1])}, coords: [ xmin: {box[0]}, ymin: {box[1]}, xmax: {box[2]}, ymax: {box[3]} ]")
+            self.logger.info(f"Bbox {i} Class: {int(detect[0])}, Confidence: {detect[1]:.2f}, coords: [ xmin: {box[0]}, ymin: {box[1]}, xmax: {box[2]}, ymax: {box[3]} ]")
 
         result["detect"] = res
         # 类别计数
@@ -309,7 +309,7 @@ class Inference(ABC):
         if not only_get_result:
             image = self.figure(detection, cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
         t5 = time.time()
-        self.logger.info(f"transform time: {int((t2-t1) * 1000)} ms, infer time: {int((t3-t2) * 1000)} ms, nms time: {int((t4-t3) * 1000)} ms, figure time: {int((t5-t4) * 1000)} ms")
+        self.logger.info(f"full time: {int((t5-t1) * 1000)} ms, transform time: {int((t2-t1) * 1000)} ms, infer time: {int((t3-t2) * 1000)} ms, nms time: {int((t4-t3) * 1000)} ms, figure time: {int((t5-t4) * 1000)} ms")
 
         # 6. 返回结果
         if not only_get_result:
@@ -347,6 +347,7 @@ class Inference(ABC):
         infer_times  = 0.0
         nms_times    = 0.0
         figure_times = 0.0
+        full_times   = 0.0
 
         # 2.遍历图片
         for image_file in image_paths:
@@ -381,11 +382,13 @@ class Inference(ABC):
             infer_time   = int((t3-t2) * 1000)
             nms_time     = int((t4-t3) * 1000)
             figure_time  = int((t5-t4) * 1000)
+            full_time    = int((t5-t1) * 1000)
             trans_times  += trans_time
             infer_times  += infer_time
             nms_times    += nms_time
             figure_times += figure_time
-            self.logger.info(f"transform time: {trans_time} ms, infer time: {infer_time} ms, nms time: {nms_time} ms, figure time: {figure_time} ms")
+            full_times   += full_time
+            self.logger.info(f"full time: {full_time} ms, transform time: {trans_time} ms, infer time: {infer_time} ms, nms time: {nms_time} ms, figure time: {figure_time} ms")
 
             # 9.保存图片
             cv2.imwrite(str(save_path / image_file), image)
@@ -393,4 +396,5 @@ class Inference(ABC):
             if save_xml:
                 array2xml(detection, image_rgb.shape, self.config["names"], save_dir, "".join(image_file.split(".")[:-1]))
 
-        self.logger.info(f"avg transform time: {trans_times / len(image_paths)} ms, avg infer time: {infer_times / len(image_paths)} ms, avg nms time: {nms_times / len(image_paths)} ms, avg figure time: {figure_times / len(image_paths)} ms")
+        image_numbers = len(image_paths)
+        self.logger.info(f"avg full time: {full_times / image_numbers} ms, avg transform time: {trans_times / image_numbers} ms, avg infer time: {infer_times / image_numbers} ms, avg nms time: {nms_times / image_numbers} ms, avg figure time: {figure_times / image_numbers} ms")
