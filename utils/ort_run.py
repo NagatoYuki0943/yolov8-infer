@@ -113,12 +113,14 @@ class OrtInference(Inference):
 
     def infer(self, images: np.ndarray) -> np.ndarray:
         """推理单张图片
+        fp16格式的模型的输入和输出为fp16
+
         Args:
             images (np.ndarray): 图片 [B, C, H, W]
         Returns:
-            np.ndarray: boxes [B, 25200, 85]
+            np.ndarray: boxes [B, 84, 8400]
         """
 
         # 推理
-        boxes: list[np.ndarray] = self.model.run(None, {self.inputs[0].name: images})    # 返回值为list
+        boxes: list[np.ndarray] = self.model.run(None, {self.inputs[0].name: images.astype(np.float16) if self.fp16 else images})
         return boxes[0]

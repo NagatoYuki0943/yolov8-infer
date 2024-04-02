@@ -155,6 +155,9 @@ class TensorRTInfer(Inference):
     def infer(self, images: np.ndarray) -> np.ndarray:
         """ async infer
         Execute inference on a batch of images.
+
+        fp16格式的模型的输入和输出也为fp32
+
         :param images: A numpy array holding the image batch.
         :return numpy arrays.
         """

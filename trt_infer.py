@@ -3,7 +3,7 @@ import cv2
 
 
 config = {
-    "model_path":           r"./weights/yolov8s.engine",
+    "model_path":           r"./weights/yolov8n.engine",
     "yaml_path":            r"./weights/yolov8.yaml",
     "confidence_threshold": 0.25,   # 只有得分大于置信度的预测框会被保留下来,越大越严格
     "score_threshold":      0.2,    # opencv nms分类得分阈值,越大越严格

@@ -75,10 +75,10 @@ class OVInference(Inference):
             ppp = PrePostProcessor(model)
             # 设定图片数据类型，形状，通道排布为RGB
             ppp.input(0).tensor().set_color_format(ColorFormat.RGB) \
-                .set_element_type(Type.f32).set_layout(Layout("NCHW"))   # BGR -> RGB Type.u8 -> Type.f32  NHWC -> NCHW
+                .set_element_type(Type.u8).set_layout(Layout("NCHW"))
             # 预处理: 改变类型,转换为RGB,减去均值,除以标准差(均值和标准差包含了归一化)
             # ppp.input(0).preprocess().convert_color(ColorFormat.RGB).convert_element_type(Type.f32).mean(mean).scale(std)
-            ppp.input(0).preprocess().scale(std)
+            ppp.input(0).preprocess().convert_element_type(Type.f32).scale(std)
             # 指定模型输入形状
             ppp.input(0).model().set_layout(Layout("NCHW"))
             # 指定模型输出类型
@@ -93,6 +93,8 @@ class OVInference(Inference):
 
     def infer(self, images: np.ndarray) -> np.ndarray:
         """推理单张图片
+        fp16格式的模型的输入和输出也为fp32
+
         Args:
             images (np.ndarray): 图片 [B, C, H, W]
         Returns:

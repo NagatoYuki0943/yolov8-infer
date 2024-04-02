@@ -3,7 +3,7 @@ import cv2
 
 
 config = {
-    "model_path":           r"./weights/yolov8s_openvino_model/yolov8s.xml",
+    "model_path":           r"./weights/yolov8n_openvino_model/yolov8n.xml",
     "mode":                 r"cpu",
     "yaml_path":            r"./weights/yolov8.yaml",
     "confidence_threshold": 0.25,   # 只有得分大于置信度的预测框会被保留下来,越大越严格

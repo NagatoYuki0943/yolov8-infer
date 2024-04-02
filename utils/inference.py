@@ -291,8 +291,7 @@ class Inference(ABC):
         # 2. 推理
         t2 = time.time()
         # numpy float16 速度慢 https://stackoverflow.com/questions/56697332/float16-is-much-slower-than-float32-and-float64-in-numpy
-        # 传递参数时转变类型比传递后再转换要快
-        results = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
+        results = self.infer(input_array).astype(np.float32)
 
         # 3. NMS
         t3 = time.time()
@@ -361,7 +360,7 @@ class Inference(ABC):
 
             # 4. 推理
             t2 = time.time()
-            results = self.infer(input_array.astype(np.float16) if self.fp16 else input_array).astype(np.float32)
+            results = self.infer(input_array).astype(np.float32)
 
             # 5. NMS
             t3 = time.time()
