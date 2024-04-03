@@ -124,10 +124,10 @@ class TensorRTInfer(Inference):
         assert len(self.outputs) > 0
         assert len(self.allocations) > 0
 
-        # 半精度推理
+        # fp16输入和输出,模型是fp16格式不代表全部参数为fp16
         if self.inputs[0]["dtype"] == np.float16:
             self.fp16 = True
-            self.logger.info("use fp16 inference")
+            self.logger.info("fp16 input, fp16 model may has fp32 input")
 
         # async stream
         self.stream = cuda.Stream()
@@ -156,7 +156,8 @@ class TensorRTInfer(Inference):
         """ async infer
         Execute inference on a batch of images.
 
-        fp16格式的模型的输入和输出也为fp32
+        使用fp32的onnx转换为fp16的模型的输入输出为fp32  yolov8
+        使用fp16的onnx转换为fp16的模型的输入输出为fp16  yolov5
 
         :param images: A numpy array holding the image batch.
         :return numpy arrays.
@@ -178,6 +179,10 @@ class TensorRTInfer(Inference):
     # def infer(self, images: np.ndarray) -> np.ndarray:
     #     """ sync infer
     #     Execute inference on a batch of images.
+
+    #     使用fp32的onnx转换为fp16的模型的输入输出为fp32  yolov8
+    #     使用fp16的onnx转换为fp16的模型的输入输出为fp16  yolov5
+
     #     :param images: A numpy array holding the image batch.
     #     :return numpy arrays.
     #     """

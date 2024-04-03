@@ -45,6 +45,11 @@ class OVInference(Inference):
         self.logger.info(f"inputs: {self.inputs}")   # inputs: [<ConstOutput: names[images] shape[1,3,640,640] type: f32>]
         self.logger.info(f"outputs: {self.outputs}") # outputs: [<ConstOutput: names[output0] shape[1,25200,85] type: f32>
 
+        # fp16输入和输出,模型是fp16格式不代表全部参数为fp16
+        if self.inputs[0].get_element_type() == Type.f16:
+            self.fp16 = True
+            self.logger.info("fp16 input, fp16 model may has fp32 input")
+
         # 3.预热模型
         self.warm_up()
 
@@ -81,7 +86,7 @@ class OVInference(Inference):
             ppp.input(0).preprocess().convert_element_type(Type.f32).scale(std)
             # 指定模型输入形状
             ppp.input(0).model().set_layout(Layout("NCHW"))
-            # 指定模型输出类型
+            # 指定模型输出类型,fp16模型也设置为fp32
             for i in range(len(model.outputs)):
                 ppp.output(i).tensor().set_element_type(Type.f32)
 
@@ -93,7 +98,9 @@ class OVInference(Inference):
 
     def infer(self, images: np.ndarray) -> np.ndarray:
         """推理单张图片
-        fp16格式的模型的输入和输出也为fp32
+
+        使用fp32的onnx转换为fp16的模型的输入输出为fp32  yolov8(v8是直接通过torch2openvino转换的)
+        使用fp16的onnx转换为fp16的模型的输入输出为fp16  yolov5
 
         Args:
             images (np.ndarray): 图片 [B, C, H, W]

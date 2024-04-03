@@ -88,10 +88,10 @@ class OrtInference(Inference):
 
         model = ort.InferenceSession(onnx_path, sess_options=so, providers=providers)
 
-        # 半精度推理
+        # fp16输入和输出,模型是fp16格式不代表全部参数为fp16
         if model.get_inputs()[0].type[7:-1] == "float16":
             self.fp16 = True
-            self.logger.info("use fp16 inference")
+            self.logger.info("fp16 input, fp16 model may has fp32 input")
 
         #--------------------------------#
         #   查看model中的内容
@@ -113,7 +113,9 @@ class OrtInference(Inference):
 
     def infer(self, images: np.ndarray) -> np.ndarray:
         """推理单张图片
-        fp16格式的模型的输入和输出为fp16
+
+        fp32的onnx模型的输入输出为fp32
+        fp16的onnx模型的输入输出为fp16
 
         Args:
             images (np.ndarray): 图片 [B, C, H, W]
@@ -122,5 +124,5 @@ class OrtInference(Inference):
         """
 
         # 推理
-        boxes: list[np.ndarray] = self.model.run(None, {self.inputs[0].name: images.astype(np.float16) if self.fp16 else images})
+        boxes: list[np.ndarray] = self.model.run(None, {self.inputs[0].name: images})
         return boxes[0]
