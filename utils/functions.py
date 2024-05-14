@@ -421,8 +421,10 @@ def xyxy2cxcywh(x: np.ndarray) -> np.ndarray:
 
 def get_logger(
     save_dir: str = "./logs",
-    file = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    file = None
 ) -> logging.Logger:
+    file = time.strftime("%Y%m%d_%H%M%S", time.localtime()) if file is None else file
+
     # logger
     logger: logging.Logger = logging.getLogger(name="Inference")
 
