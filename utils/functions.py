@@ -131,7 +131,7 @@ def np_softmax(array: np.ndarray, axis=-1) -> np.ndarray:
     return array / np.sum(array, axis=axis)
 
 
-def iou(box1: list, box2: list) -> bool:
+def box_iou(box1: list, box2: list) -> bool:
     """calc iou
 
     Args:
