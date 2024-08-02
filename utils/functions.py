@@ -141,8 +141,8 @@ def box_iou(box1: list, box2: list) -> bool:
     Returns:
         iou
     """
-    box1_area = (box1[2] - box1[0]) * box1[3] - box1[1]
-    box2_area = (box2[2] - box2[0]) * box2[3] - box2[1]
+    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
 
     # 内部盒子面积
     inner_box_x1 = max(box1[0], box2[0])
