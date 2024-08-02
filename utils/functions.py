@@ -131,6 +131,30 @@ def np_softmax(array: np.ndarray, axis=-1) -> np.ndarray:
     return array / np.sum(array, axis=axis)
 
 
+def iou(box1: list, box2: list) -> bool:
+    """calc iou
+
+    Args:
+        box1 (list): 假设外部盒子 [x_min, y_min, x_max, y_max]
+        box2 (list): 假设内部盒子 [x_min, y_min, x_max, y_max]
+
+    Returns:
+        iou
+    """
+    box1_area = (box1[2] - box1[0]) * box1[3] - box1[1]
+    box2_area = (box2[2] - box2[0]) * box2[3] - box2[1]
+
+    # 内部盒子面积
+    inner_box_x1 = max(box1[0], box2[0])
+    inner_box_y1 = max(box1[1], box2[1])
+    inner_box_x2 = min(box1[2], box2[2])
+    inner_box_y2 = min(box1[3], box2[3])
+    # max 用来判断是否重叠
+    inner_box_area = max(inner_box_x2 - inner_box_x1, 0) * max(inner_box_y2 - inner_box_y1, 0)
+
+    iou = inner_box_area / (box1_area + box2_area - inner_box_area)
+    return iou
+
 def ignore_box2_or_not(box1: list, box2: list, ratio: float = 0.75) -> bool:
     """determine whether ignore box2 use iou
 
