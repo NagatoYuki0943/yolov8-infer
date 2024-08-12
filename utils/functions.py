@@ -135,11 +135,11 @@ def box_iou(box1: list, box2: list) -> float:
     """calc iou
 
     Args:
-        box1 (list): 假设外部盒子 [x_min, y_min, x_max, y_max]
-        box2 (list): 假设内部盒子 [x_min, y_min, x_max, y_max]
+        box1 (list): 盒子1 [x_min, y_min, x_max, y_max]
+        box2 (list): 盒子2 [x_min, y_min, x_max, y_max]
 
     Returns:
-        iou
+        iou (float)
     """
     box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
     box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
