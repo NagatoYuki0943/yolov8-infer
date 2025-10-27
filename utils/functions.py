@@ -59,9 +59,9 @@ def resize_and_pad(image: np.ndarray, new_shape: tuple[int]) -> tuple[np.ndarray
     delta_h = new_shape[0] - new_size[0]
     delta_w = new_shape[1] - new_size[1]
     # 使用灰色填充到640*640的形状
-    color = [114, 114, 114]
+    color = [128, 128, 128]
     # 右下方向添加灰条
-    image_reized = cv2.copyMakeBorder(
+    image_resized = cv2.copyMakeBorder(
         src=image,
         top=0,
         bottom=delta_h,
@@ -70,7 +70,7 @@ def resize_and_pad(image: np.ndarray, new_shape: tuple[int]) -> tuple[np.ndarray
         borderType=cv2.BORDER_CONSTANT,
         value=color
     )
-    return image_reized, ratio
+    return image_resized, ratio
 
 
 def transform(image: np.ndarray, openvino_preprocess: bool = False) -> np.ndarray:
