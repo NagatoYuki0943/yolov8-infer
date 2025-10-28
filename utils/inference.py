@@ -202,21 +202,27 @@ class Inference(ABC):
 
             # 文字
             label = f"{str(self.config['names'][classId])} {confidence:.2f}"
-            w, h = cv2.getTextSize(label, 0, fontScale=0.5, thickness=1)[0]  # text width, height
+            t_w, t_h = cv2.getTextSize(label, 0, fontScale=0.5, thickness=1)[0]  # text width, height
 
             # 添加文字背景
-            image = cv2.rectangle(image, (xmin, ymin - 20 if ymin > 20 else ymin + h + 10), (xmin + w, ymin), self.colors[classId], cv2.FILLED)
+            image = cv2.rectangle(
+                image,
+                (xmin, ymin - t_h - 10 if ymin > t_h + 5 else ymin + t_h + 10),
+                (xmin + t_w, ymin),
+                (255, 255, 255),
+                cv2.FILLED,
+            )
 
             # 添加文字
             image = cv2.putText(
-                img       = image,
-                text      = label,
-                org       = (xmin, ymin - 5 if ymin > 20 else ymin + h + 5),
-                fontFace  = 0,
-                fontScale = 0.5,
-                color     = (0, 0, 0),
-                thickness = 1,
-                lineType  = cv2.LINE_AA,
+                img=image,
+                text=label,
+                org=(xmin, ymin - 5 if ymin > t_h + 5 else ymin + t_h + 5),
+                fontFace=0,
+                fontScale=0.5,
+                color=(0, 0, 0),
+                thickness=1,
+                lineType=cv2.LINE_AA,
             )
 
         return image
