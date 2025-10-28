@@ -40,6 +40,36 @@ def read_image(image_path: str) -> np.ndarray:
     return image_rgb
 
 
+def make_image_divisible(image: np.ndarray, divisor: int = 32) -> np.ndarray:
+    """将图片的高宽调整为某个数的倍数
+
+    Args:
+        image (np.ndarray): 图片
+        divisor (int, optional): 调整为的倍数. Defaults to 32.
+
+    Returns:
+        np.ndarray: 调整后的图片
+    """
+    h, w = image.shape[:2]
+    new_h = (np.ceil(h / divisor) * divisor).astype(np.int64)
+    new_w = (np.ceil(w / divisor) * divisor).astype(np.int64)
+    delta_h = new_h - h
+    delta_w = new_w - w
+    # 使用灰色填充到640*640的形状
+    color = [114, 114, 114]
+    # 右下方向添加灰条
+    image_resized = cv2.copyMakeBorder(
+        src=image,
+        top=0,
+        bottom=delta_h,
+        left=0,
+        right=delta_w,
+        borderType=cv2.BORDER_CONSTANT,
+        value=color,
+    )
+    return image_resized
+
+
 def resize_and_pad(image: np.ndarray, new_shape: tuple[int]) -> tuple[np.ndarray, float]:
     """缩放图片并填充为正方形,右下填充
 
